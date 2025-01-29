@@ -1,0 +1,6 @@
+/glf-accounts/
+/glf-api-gateway/
+/glf-communities/
+/glf-configServer/
+/glf-servicediscovery/
+/.env/.config/

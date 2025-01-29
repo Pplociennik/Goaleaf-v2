@@ -1,0 +1,24 @@
+### POST request to create a community
+POST http://localhost:8072/glf-communities/api/communities/create
+Content-Type: application/json
+
+{
+  "name": "Test Community",
+  "description": "This is a test community."
+}
+
+### GET request to fetch a community by identifier
+GET http://localhost:8072/glf-communities/api/communities/community?aIdentifier=test-id
+
+### PUT request to update a community
+PUT http://localhost:8072/glf-communities/api/communities/update
+Content-Type: application/json
+
+{
+  "id": "test-id",
+  "name": "Updated Community",
+  "description": "This is an updated test community."
+}
+
+### DELETE request to delete a community by identifier
+DELETE http://localhost:8072/glf-communities/api/communities/delete?aIdentifier=test-id

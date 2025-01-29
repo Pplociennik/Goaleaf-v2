@@ -1,0 +1,189 @@
+services:
+
+# Api Gateway
+
+  api-gateway:
+    image: "com.goaleaf/glf-api-gateway:${API_GATEWAY_VERSION}"
+    container_name: glf-api-gateway
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    ports:
+      - "8091:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://servicediscovery:8070/eureka/"
+    depends_on:
+      - servicediscovery
+
+# Service Discovery
+
+  servicediscovery:
+    image: "com.goaleaf/glf-servicediscovery:${SERVICE_DISCOVERY_VERSION}"
+    container_name: glf-servicediscovery
+    ports:
+      - "8070:8070"
+    depends_on:
+      configserver:
+        condition: service_healthy
+    healthcheck:
+      test: "curl --fail --silent localhost:8070/actuator/health/readiness | grep UP || exit 1"
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    extends:
+      file: common-config.yml
+      service: microservice-configserver-config
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+      SPRING_APPLICATION_NAME: "servicediscovery"
+
+# Database
+
+  goaleafdb:
+    container_name: goaleafdb
+    hostname: goaleafdb
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: goaleafdb
+    extends:
+      file: common-config.yml
+      service: microservice-db-config
+
+# Config Server
+
+  configserver:
+    image: "com.goaleaf/glf-configserver:${CONFIG_SERVER_VERSION}"
+    hostname: glf-configserver
+    ports:
+      - "8071:8071"
+    environment:
+      SPRING_PROFILES_ACTIVE: "qa"
+    healthcheck:
+      test: "curl --fail --silent localhost:8071/actuator/health | grep UP || exit 1"
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    extends:
+      file: common-config.yml
+      service: microservice-base-config
+
+# Microservices
+  # Accounts
+
+  accounts:
+    image: "com.goaleaf/glf-accounts:${ACCOUNTS_SERVICE_VERSION}"
+    container_name: "glf-accounts"
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_APPLICATION_NAME: "accounts"
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      SPRING_JPA_DATABASE_PLATFORM: ${SPRING_JPA_DATABASE_PLATFORM}
+      SPRING_DATASOURCE_DRIVERCLASSNAME: ${SPRING_JPA_DATASOURCE_DRIVERCLASSNAME}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://servicediscovery:8070/eureka/"
+    depends_on:
+      configserver:
+        condition: service_healthy
+      goaleafdb:
+        condition: service_healthy
+    extends:
+      file: common-config.yml
+      service: microservice-configserver-config
+
+    # Communities
+
+  communities:
+    image: "com.goaleaf/glf-communities:${COMMUNITIES_SERVICE_VERSION}"
+    container_name: "glf-communities"
+    ports:
+      - "8090:8090"
+    environment:
+      SPRING_APPLICATION_NAME: "communities"
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      SPRING_JPA_DATABASE_PLATFORM: ${SPRING_JPA_DATABASE_PLATFORM}
+      SPRING_DATASOURCE_DRIVERCLASSNAME: ${SPRING_JPA_DATASOURCE_DRIVERCLASSNAME}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://servicediscovery:8070/eureka/"
+    depends_on:
+      configserver:
+        condition: service_healthy
+      goaleafdb:
+        condition: service_healthy
+    extends:
+      file: common-config.yml
+      service: microservice-configserver-config
+
+# Grafana
+
+  # Loki
+
+  loki:
+    image: grafana/loki:latest
+    volumes:
+      - ../../observability/loki/local-config.yml:/etc/loki/local-config.yml
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yml
+    extends:
+      file: common-config.yml
+      service: network-deploy-service
+
+  # Promtail
+
+  promtail:
+    image: grafana/promtail:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ../../observability/promtail/config.yml:/etc/promtail/config.yml
+    command: -config.file=/etc/promtail/config.yml
+    extends:
+      file: common-config.yml
+      service: network-deploy-service
+
+  # Grafana
+
+  grafana:
+    environment:
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+    entrypoint:
+      - sh
+      - -euc
+      - |
+        mkdir -p /etc/grafana/provisioning/datasources
+        cat <<EOF > /etc/grafana/provisioning/datasources/ds.yaml
+        apiVersion: 1
+        datasources:
+        - name: Loki
+          type: loki
+          access: proxy 
+          orgId: 1
+          url: http://loki:3100
+          basicAuth: false
+          isDefault: true
+          version: 1
+          editable: false
+        EOF
+        /run.sh
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    extends:
+      file: common-config.yml
+      service: network-deploy-service
+
+# Networks
+
+networks:
+  goaleaf_net:
+    driver: "bridge"
