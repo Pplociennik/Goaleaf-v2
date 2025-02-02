@@ -1,0 +1,44 @@
+global:
+  scrape_interval: 15s
+  scrape_timeout: 10s
+  evaluation_interval: 15s
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+      scheme: http
+      timeout: 10s
+      api_version: v2
+scrape_configs:
+  - job_name: prometheus
+    honor_timestamps: true
+    metrics_path: /metrics
+    scheme: http
+    static_configs:
+      - targets:
+          - localhost:9090
+
+  - job_name: 'api-gateway'
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: [ 'api-gateway:8072' ]
+
+  - job_name: 'servicediscovery'
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: [ 'servicediscovery:8070' ]
+
+  - job_name: 'configserver'
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: [ 'configserver:8071' ]
+
+  - job_name: 'accounts'
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: [ 'accounts:8080' ]
+
+  - job_name: 'communities'
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: [ 'communities:8090' ]
