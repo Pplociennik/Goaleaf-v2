@@ -13,11 +13,13 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://servicediscovery:8070/eureka/"
+      SPRING_APPLICATION_NAME: "api-gateway"
+      OTEL_SERVICE_NAME: "api-gateway"
     depends_on:
       - servicediscovery
     extends:
       file: common-config.yml
-      service: network-deploy-service
+      service: microservice-configserver-config
 
 # Service Discovery
 
@@ -41,8 +43,10 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
       SPRING_APPLICATION_NAME: "servicediscovery"
+      OTEL_SERVICE_NAME: "servicediscovery"
+      JAVA_TOOL_OPTIONS: "-javaagent:/app/libs/opentelemetry-javaagent-2.12.0.jar"
 
-# Database
+  # Database
 
   goaleafdb:
     container_name: goaleafdb
@@ -64,11 +68,14 @@ services:
       - "8071:8071"
     environment:
       SPRING_PROFILES_ACTIVE: "qa"
+      SPRING_APPLICATION_NAME: "configserver"
+      OTEL_SERVICE_NAME: "configserver"
+      JAVA_TOOL_OPTIONS: "-javaagent:/app/libs/opentelemetry-javaagent-2.12.0.jar"
     healthcheck:
       test: "curl --fail --silent localhost:8071/actuator/health | grep UP || exit 1"
-      interval: 10s
+      interval: 20s
       timeout: 5s
-      retries: 10
+      retries: 20
       start_period: 10s
     extends:
       file: common-config.yml
@@ -84,6 +91,7 @@ services:
       - "8080:8080"
     environment:
       SPRING_APPLICATION_NAME: "accounts"
+      OTP_SERVICE_NAME: "accounts"
       SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
       SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
       SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
@@ -109,6 +117,7 @@ services:
       - "8090:8090"
     environment:
       SPRING_APPLICATION_NAME: "communities"
+      OTEL_SERVICE_NAME: "communities"
       SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
       SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
       SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
@@ -180,6 +189,21 @@ services:
     restart: unless-stopped
     volumes:
       - ../../../observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    extends:
+      file: common-config.yml
+      service: network-deploy-service
+
+  # Tempo
+
+  tempo:
+    image: grafana/tempo
+    container_name: tempo
+    ports:
+      - "3200:3200"
+      - "4318:4318"
+    volumes:
+      - ../../../observability/tempo/tempo.yaml:/etc/tempo.yaml
+    command: -config.file=/etc/tempo.yaml
     extends:
       file: common-config.yml
       service: network-deploy-service
