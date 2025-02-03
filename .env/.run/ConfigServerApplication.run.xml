@@ -1,5 +1,11 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="ConfigServerApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+    <envs>
+      <env name="JAVA_TOOL_OPTIONS" value="-javaagent:$PROJECT_DIR$/.env/.run/lib/opentelemetry-javaagent.jar" />
+      <env name="OTEL_EXPORTER_OTLP_ENDPOINT" value="http://localhost:4317" />
+      <env name="OTEL_LOGS_EXPORTER" value="none" />
+      <env name="OTEL_METRICS_EXPORTER" value="none" />
+    </envs>
     <module name="glf-configserver" />
     <option name="SPRING_BOOT_MAIN_CLASS" value="com.goaleaf.configserver.ConfigServerApplication" />
     <method v="2">
