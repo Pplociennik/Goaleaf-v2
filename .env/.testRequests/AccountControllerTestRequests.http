@@ -1,5 +1,5 @@
 ### POST request to create a user
-POST http://localhost:8072/glf-accounts/api/users/create
+POST http://localhost:8072/accounts/api/users/create
 Content-Type: application/json
 
 {
@@ -9,10 +9,10 @@ Content-Type: application/json
 }
 
 ### GET request to fetch a user by email address
-GET http://localhost:8072/glf-accounts/api/users/user?aEmailAddress=test@example.com
+GET http://localhost:8072/accounts/api/users/user?aEmailAddress=test@example.com
 
 ### PUT request to update a user
-PUT http://localhost:8072/glf-accounts/api/users/update
+PUT http://localhost:8072/accounts/api/users/update
 Content-Type: application/json
 
 {
@@ -22,4 +22,4 @@ Content-Type: application/json
 }
 
 ### DELETE request to delete a user by identifier
-DELETE http://localhost:8072/glf-accounts/api/users/delete?aIdentifier=test@example.com
+DELETE http://localhost:8072/accounts/api/users/delete?aIdentifier=test@example.com
