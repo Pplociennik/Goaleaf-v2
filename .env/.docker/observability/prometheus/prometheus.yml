@@ -42,3 +42,8 @@ scrape_configs:
     metrics_path: /actuator/prometheus
     static_configs:
       - targets: [ 'communities:8090' ]
+
+  - job_name: 'auth'
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: [ 'pp-auth:8711' ]

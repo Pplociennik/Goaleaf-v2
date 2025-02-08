@@ -1,0 +1,15 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="PpAuthRunner" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" folderName="Public">
+    <option name="envFilePaths">
+      <option value="$PROJECT_DIR$/.env/.run/env/.env_auth" />
+    </option>
+    <module name="auth.core" />
+    <selectedOptions>
+      <option name="environmentVariables" />
+    </selectedOptions>
+    <option name="SPRING_BOOT_MAIN_CLASS" value="com.github.pplociennik.auth.core.runner.Runner" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

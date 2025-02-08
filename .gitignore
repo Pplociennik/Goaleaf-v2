@@ -4,3 +4,9 @@
 /glf-configServer/
 /glf-servicediscovery/
 /.env/.config/
+/pp-auth/
+/.env/.run/PpAuthRunner_NonGIt.run.xml
+/.env/.run/env/.env_auth_nonGit
+/.env/.docker/compose/qa/single-db/.env
+/.env/.run/ConfigServerApplication_nonGit.run.xml
+/.env/.docker/compose/qa/multi-db/.env
