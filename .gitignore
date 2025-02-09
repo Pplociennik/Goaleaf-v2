@@ -10,3 +10,5 @@
 /.env/.docker/compose/qa/single-db/.env
 /.env/.run/ConfigServerApplication_nonGit.run.xml
 /.env/.docker/compose/qa/multi-db/.env
+/.env/.run/With_Observability/O_ConfigServerApplication_nonGit.run.xml
+/.env/.run/With_Observability/O_PpAuthRunner_NonGIt.run.xml
