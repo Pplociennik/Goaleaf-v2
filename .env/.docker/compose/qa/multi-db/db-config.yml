@@ -1,0 +1,60 @@
+services:
+
+  # Databases
+
+  keycloakdb:
+    container_name: keycloakdb
+    hostname: keycloakdb
+    ports:
+      - "3308:3306"
+    environment:
+      MYSQL_DATABASE: keycloakdb
+    volumes:
+      - ./volumes/keycloak-mysql:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 10s
+      retries: 999999
+      start_period: 30s
+    extends:
+      file: common-config.yml
+      service: microservice-db-config
+
+  accountsdb:
+    container_name: accountsdb
+    hostname: accountsdb
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: accountsdb
+    volumes:
+      - ./volumes/accounts-mysql:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 10s
+      retries: 999999
+      start_period: 30s
+    extends:
+      file: common-config.yml
+      service: microservice-db-config
+
+  communitiesdb:
+    container_name: communitiesdb
+    hostname: communitiesdb
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_DATABASE: communitiesdb
+    volumes:
+      - ./volumes/communities-mysql:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 10s
+      retries: 999999
+      start_period: 30s
+    extends:
+      file: common-config.yml
+      service: microservice-db-config

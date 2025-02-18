@@ -1,0 +1,20 @@
+services:
+
+  goaleafdb:
+    container_name: goaleafdb
+    hostname: goaleafdb
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: goaleafdb
+    volumes:
+      - ./volumes/mysql:/var/lib/mysql
+    healthcheck:
+      test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
+      interval: 10s
+      timeout: 10s
+      retries: 999999
+      start_period: 30s
+    extends:
+      file: common-config.yml
+      service: microservice-db-config
