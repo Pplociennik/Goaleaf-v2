@@ -71,17 +71,6 @@ services:
       file: common-config.yml
       service: microservice-db-config
 
-  authdb:
-    container_name: authdb
-    hostname: authdb
-    ports:
-      - "3308:3306"
-    environment:
-      MYSQL_DATABASE: authdb
-    extends:
-      file: common-config.yml
-      service: microservice-db-config
-
   # Config Server
 
   configserver:
@@ -110,53 +99,6 @@ services:
       service: microservice-base-config
 
     # Microservices
-
-    # PP-Auth
-  auth:
-    image: "com.github.pplociennik.auth/pp-auth:${PP_AUTH_VERSION}"
-    container_name: "pp-auth"
-    ports:
-      - "8711:8711"
-    environment:
-      SPRING_APPLICATION_NAME: "auth"
-      OTEL_SERVICE_NAME: "auth"
-      SPRING_DATASOURCE_URL: ${PP_AUTH_SPRING_DATASOURCE_URL}
-      SPRING_DATASOURCE_USERNAME: ${PP_AUTH_SPRING_DATASOURCE_USERNAME}
-      SPRING_DATASOURCE_PASSWORD: ${PP_AUTH_SPRING_DATASOURCE_PASSWORD}
-      SPRING_JPA_DATABASE_PLATFORM: ${PP_AUTH_SPRING_JPA_DATABASE_PLATFORM}
-      SPRING_DATASOURCE_DRIVERCLASSNAME: ${PP_AUTH_SPRING_JPA_DATASOURCE_DRIVERCLASSNAME}
-      SPRING_PROFILES_ACTIVE: ${PP_AUTH_SPRING_PROFILES_ACTIVE}
-      SPRING_JPA_HIBERNATE_DDL_AUTO: ${PP_AUTH_SPRING_JPA_HIBERNATE_DDL_AUTO}
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE}
-      #      Auth specific:
-      PP_AUTH_GLOBAL_CLIENT_URL: ${PP_AUTH_GLOBAL_CLIENT_URL}
-      PP_AUTH_GLOBAL_EMAILS_SENDING: ${PP_AUTH_GLOBAL_EMAILS_SENDING}
-      PP_AUTH_GLOBAL_JWT_EXPIRATION_TIME: ${PP_AUTH_GLOBAL_JWT_EXPIRATION_TIME}
-      PP_AUTH_GLOBAL_JWT_SECRET: ${PP_AUTH_GLOBAL_JWT_SECRET}
-      SPRING_JACKSON_DESERIALIZATION_ADJUST_DATES_TO_CONTEXT_TIME_ZONE: ${SPRING_JACKSON_DESERIALIZATION_ADJUST_DATES_TO_CONTEXT_TIME_ZONE}
-      SPRING_JACKSON_TIME_ZONE: ${SPRING_JACKSON_TIME_ZONE}
-      SPRING_JPA_PROPERTIES_HIBERNATE_JDBC_TIME_ZONE: ${SPRING_JPA_PROPERTIES_HIBERNATE_JDBC_TIME_ZONE}
-      SPRING_MAIL_HOST: ${SPRING_MAIL_HOST}
-      SPRING_MAIL_PASSWORD: ${SPRING_MAIL_PASSWORD}
-      SPRING_MAIL_PORT: ${SPRING_MAIL_PORT}
-      SPRING_MAIL_PROTOCOL: ${SPRING_MAIL_PROTOCOL}
-      SPRING_MAIL_USERNAME: ${SPRING_MAIL_USERNAME}
-      SPRINGDOC_SWAGGER_UI_PATH: ${SPRINGDOC_SWAGGER_UI_PATH}
-      PP_AUTH_GLOBAL_ALLOWED_ORIGINS: ${PP_AUTH_GLOBAL_ALLOWED_ORIGINS}
-    healthcheck:
-      test: "curl --fail --silent localhost:8711/actuator/health/readinessState | grep UP || exit 1"
-      interval: 20s
-      timeout: 5s
-      retries: 20
-      start_period: 10s
-    depends_on:
-      configserver:
-        condition: service_healthy
-      authdb:
-        condition: service_healthy
-    extends:
-      file: common-config.yml
-      service: microservice-base-config
 
       # Accounts
 

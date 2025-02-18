@@ -1,0 +1,14 @@
+services:
+
+  goaleafdb:
+    container_name: goaleafdb
+    hostname: goaleafdb
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: goaleafdb
+    volumes:
+      - ./volumes/mysql:/var/lib/mysql
+    extends:
+      file: common-config.yml
+      service: microservice-db-config
