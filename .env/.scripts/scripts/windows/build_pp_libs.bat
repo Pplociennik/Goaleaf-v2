@@ -20,7 +20,7 @@ REM A path to the local Git installation (if not available in the PATH). Use 'gi
 SET GIT=git
 
 REM A path to the local maven repository.
-SET MAVEN_REPO=D:\Development\Maven\local_m2\repository
+SET MAVEN_REPO=..\..\..\.tools\maven-repo
 REM The branches/tags to be built.
 SET PP_BASE_BRANCH_OR_TAG=master
 SET PP_COMMONS_BRANCH_OR_TAG=master
