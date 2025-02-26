@@ -19,8 +19,6 @@ SET MVN=mvn
 REM A path to the local Git installation (if not available in the PATH). Use 'git' if Git is available in the PATH.
 SET GIT=git
 
-REM A path to the local maven repository.
-SET MAVEN_REPO=..\..\..\.tools\maven-repo
 REM The branches/tags to be built.
 SET PP_BASE_BRANCH_OR_TAG=master
 SET PP_COMMONS_BRANCH_OR_TAG=master
@@ -28,7 +26,10 @@ SET PP_MODINFO_BRANCH_OR_TAG=master
 
 REM These are constants used in the script:
 SET HOME=%CD%
-SET TEMP_DIR=%HOME%\.temp
+SET TEMP_DIR="%HOME%\.temp"
+
+REM A path to the local maven repository.
+SET MAVEN_REPO="%HOME%\..\..\..\.tools\maven-repo"
 
 REM These are the paths to the libraries' repositories:
 SET PP_BASE_REPO=https://github.com/Pplociennik/pp-base.git
@@ -38,7 +39,6 @@ SET PP_MODINFO_REPO=https://github.com/Pplociennik/pp-modinfo.git
 CALL :log Building the libraries needed for the PP projects...
 
 REM ---------------- First remove temporary directories, if they exist ----------------
-
 IF EXIST %TEMP_DIR% (
     CALL :log Removing the existing temporary directories...
     RD /S /Q %TEMP_DIR% || goto :error
@@ -94,7 +94,7 @@ CALL :build
 
 REM ---------------- Clean up ----------------
 
-CD %HOME% || goto :error
+CD "%HOME%" || goto :error
 RD /S /Q %TEMP_DIR% || goto :error
 
 REM ---------------- Done ----------------
