@@ -15,7 +15,7 @@ REM    2. The system should have access to the internet.
 
 REM These are the variables that will be used in the script.
 SET HOME=%CD%
-SET DEBUG=true
+SET DEBUG=false
 
 REM A git installation. If git is available in the system path, just use 'git'.
 SET GIT=git
@@ -41,63 +41,73 @@ SET API_GATEWAY_BRANCH=main
 SET ACCOUNTS_BRANCH=main
 SET COMMUNITIES_BRANCH=main
 
+REM Temporary directory for cloning
+SET TEMP_DIR=%HOME%\.temp
+
+REM Target directory for moving the cloned repositories
+SET TARGET_DIR=..\..\..\..\..
+
 REM ====================================================================================================================
 
 CALL :log Preparing the development environment for the project...
 
-CALL :switchDirectory %HOME%
+REM ---------------- Create temporary directory ----------------
+IF EXIST %TEMP_DIR% (
+    CALL :log Removing the existing temporary directory...
+    RD /S /Q %TEMP_DIR% || goto :error
+)
+CALL :log Creating temporary directory...
+MKDIR %TEMP_DIR% || goto :error
+
+CALL :switchDirectory %TEMP_DIR%
 
 REM ---------------- Config Server ----------------
-IF NOT EXIST "%CONFIG_SERVER_REPO%" (
-    CALL :clone %CONFIG_SERVER_REPO% %CONFIG_SERVER_DIR% ConfigServer
-) ELSE (
-    CALL :update %CONFIG_SERVER_DIR% ConfigServer %CONFIG_SERVER_BRANCH%
-)
-
-CALL :switchDirectory %HOME%
+CALL :checkAndClone %CONFIG_SERVER_REPO% %CONFIG_SERVER_DIR% ConfigServer
 
 REM ---------------- Service Discovery ----------------
-IF NOT EXIST "%SERVICE_DISCOVERY_REPO%" (
-    CALL :clone %SERVICE_DISCOVERY_REPO% %SERVICE_DISCOVERY_DIR% ServiceDiscovery
-) ELSE (
-    CALL :update %SERVICE_DISCOVERY_DIR% ServiceDiscovery %SERVICE_DISCOVERY_BRANCH%
-)
-
-CALL :switchDirectory %HOME%
+CALL :checkAndClone %SERVICE_DISCOVERY_REPO% %SERVICE_DISCOVERY_DIR% ServiceDiscovery
 
 REM ---------------- API Gateway ----------------
-IF NOT EXIST "%API_GATEWAY_REPO%" (
-    CALL :clone %API_GATEWAY_REPO% %API_GATEWAY_DIR% ApiGateway
-) ELSE (
-    CALL :update %API_GATEWAY_DIR% ApiGateway %API_GATEWAY_BRANCH%
-)
-
-CALL :switchDirectory %HOME%
+CALL :checkAndClone %API_GATEWAY_REPO% %API_GATEWAY_DIR% ApiGateway
 
 REM ---------------- Accounts ----------------
-IF NOT EXIST "%ACCOUNTS_REPO%" (
-    CALL :clone %ACCOUNTS_REPO% %ACCOUNTS_DIR% Accounts
-) ELSE (
-    CALL :update %ACCOUNTS_DIR% Accounts %ACCOUNTS_BRANCH%
-)
-
-CALL :switchDirectory %HOME%
+CALL :checkAndClone %ACCOUNTS_REPO% %ACCOUNTS_DIR% Accounts
 
 REM ---------------- Communities ----------------
-IF NOT EXIST "%COMMUNITIES_REPO%" (
-    CALL :clone %COMMUNITIES_REPO% %COMMUNITIES_DIR% Communities
-) ELSE (
-    CALL :update %COMMUNITIES_DIR% Communities %COMMUNITIES_BRANCH%
-)
+CALL :checkAndClone %COMMUNITIES_REPO% %COMMUNITIES_DIR% Communities
+
+REM ---------------- Clean up temporary directory ----------------
+CALL :switchDirectory %HOME%
+CALL :log Cleaning up temporary directory...
+RD /S /Q %TEMP_DIR% || goto :error
 
 CALL :log The development environment has been prepared successfully.
 
-CALL :switchDirectory %SCRIPTS%
-
-exit /b 0
+IF "%DEBUG%"=="true" (
+    exit /b 0
+) ELSE (
+    cmd /k
+)
 
 REM ====================================================================================================================
 REM ------------------------------------------------ Functions ---------------------------------------------------------
+
+:checkAndClone
+REM This function will check if the repository directory exists in the target location.
+REM If it does not exist, it will clone the repository.
+REM Parameters:
+REM    1. The repository URL.
+REM    2. The directory where the repository should be cloned.
+REM    3. The name of the repository.
+CALL :debug Function 'checkAndClone' called with parameters "%*"
+IF EXIST "%TARGET_DIR%\%2" (
+    CALL :log %3 already exists in the target directory. Skipping clone.
+) ELSE (
+    CALL :clone %1 %2 %3
+    CALL :moveRepo %2
+)
+CALL :debug Function 'checkAndClone' finished.
+goto :eof
 
 :clone
 REM This function will clone the repository.
@@ -112,27 +122,15 @@ CALL :log %3 has been cloned successfully.
 CALL :debug Function 'clone' finished.
 goto :eof
 
-:update
-REM This function will update the repository.
+:moveRepo
+REM This function will move the cloned repository to the target directory.
 REM Parameters:
-REM    1. The directory where the repository is located.
-REM    2. The name of the repository.
-REM    3. The branch/tag to checkout.
-CALL :debug Function 'update' called with parameters "%*"
-CALL :log Pulling the latest changes for "%2"...
-CALL :switchDirectory "%1"
-CALL :debug Fetching all...
-%GIT% fetch --all || goto :error
-CALL :debug Finished fetching all.
-CALL :debug Checking out "%3"...
-%GIT% checkout "%3" || goto :error
-CALL :debug Finished checking out "%3".
-CALL :debug Pulling...
-%GIT% pull || goto :error
-CALL :debug Finished pulling.
-CALL :switchDirectory "%HOME%"
-CALL :log %2 has been updated successfully.
-CALL :debug Function 'update' finished.
+REM    1. The directory to move.
+CALL :debug Function 'moveRepo' called with parameters "%*"
+CALL :log Moving "%1" to target directory...
+MOVE "%1" "%TARGET_DIR%" || goto :error
+CALL :log %1 has been moved successfully.
+CALL :debug Function 'moveRepo' finished.
 goto :eof
 
 :switchDirectory
@@ -145,15 +143,16 @@ CALL :debug Switched to %cd%
 goto :eof
 
 :log
-echo [INFO] %* || goto :error
+echo [INFO] %*
 goto :eof
 
 :debug
 IF "%DEBUG%"=="true" (
 echo.
-echo [DEBUG] %* || goto :eof
-goto :eof
+echo [DEBUG] %*
 )
+goto :eof
 
 :error
-echo [ERROR] %* || goto :eof
+echo [ERROR] %*
+goto :eof
