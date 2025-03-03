@@ -3,19 +3,33 @@ SETLOCAL ENABLEDELAYEDEXPANSION
 
 REM Path to the .env file
 SET ENV_FILE="%cd%\.env"
+SET DEFAULT_PROJECT_NAME=Goaleaf
+SET PROJECT_NAME=%DEFAULT_PROJECT_NAME%
+
+SET DEBUG=true
+
+SET SCRIPT_DIR=%CD%
+SET HOME_DIR="%SCRIPT_DIR%\..\..\..\..\.."
+
+REM List of variables that can have different values
+SET EXCEPTIONS_LIST="ACTIVE_PROFILE OS LOCAL_MAVEN_REPOSITORY DOCKER_COMPOSE_SINGLE_DB DOCKER_COMPOSE_MULTI_DB EXCLUDE_OBSERVABILITY"
 
 REM Read the .env file and set the variables
 FOR /F "tokens=1,2 delims==" %%A IN ('TYPE %ENV_FILE% ^| FINDSTR /R "^[a-zA-Z]"') DO (
     SET %%A=%%B
+    SET "IS_EXCEPTION=false"
+    FOR %%E IN (%EXCEPTIONS_LIST%) DO (
+        IF /I "%%A"=="%%E" SET "IS_EXCEPTION=true"
+    )
+    IF /I "%IS_EXCEPTION%"=="false" IF /I NOT "%%B"=="true" IF /I NOT "%%B"=="false" (
+        ECHO [ERROR] Invalid value "%%B" for variable "%%A". Expected "true" or "false".
+        EXIT /B 1
+    )
 )
 
 REM Now you can use the variables from the .env file
-CALL :log "Loaded environment variables from .env file"
-
-SET DEBUG=true
-SET PROJECT_NAME="Goaleaf v2"
-
-SET HOME_DIR="%cd%\..\..\..\..\.."
+CALL :log Loaded environment variables from .env file
+CALL :log Starting the setup...
 
 SET ACCOUNTS_DIR="%HOME_DIR%\glf-accounts"
 SET COMMUNITIES_DIR="%HOME_DIR%\glf-communities"
@@ -25,52 +39,243 @@ SET API_GATEWAY_DIR="%HOME_DIR%\glf-api-gateway"
 
 SET MVN=mvn
 
-CALL :log "Setting up the project..."
+CALL :logDelimiter
 
-CALL :buildAccounts
+IF "%BUILD_ACCOUNTS%" == "true" (
+    CALL :buildAccounts
+)
 
+CALL :logDelimiter
 
+IF "%BUILD_COMMUNITIES%" == "true" (
+    CALL :buildCommunities
+)
+
+CALL :logDelimiter
+
+IF "%BUILD_CONFIGSERVER%" == "true" (
+    CALL :buildConfigServer
+)
+
+CALL :logDelimiter
+
+IF "%BUILD_SERVICEDISCOVERY%" == "true" (
+    CALL :buildServiceDiscovery
+)
+
+CALL :logDelimiter
+
+IF "%BUILD_APIGATEWAY%" == "true" (
+    CALL :buildApiGateway
+)
+
+ECHO.
+SET PROJECT_NAME=%DEFAULT_PROJECT_NAME%
+CALL :log Setup completed successfully.
+exit /b 0
 
 REM =================================================================================================
 
 REM Maven
 
+REM This function will build the Accounts project.
 :buildAccounts
 CALL :debug Function buildAccounts started...
 CALL :debug Setting the project name to Accounts...
-SET PROJECT_NAME="Accounts"
-CALL :log "Building Accounts..."
+SET PROJECT_NAME=Accounts
+CALL :log Building Accounts...
 CALL :debug [ "BUILD_ACCOUNTS=%BUILD_ACCOUNTS%, BUILD_ACCOUNTS_DOCKER_IMAGE=%BUILD_ACCOUNTS_DOCKER_IMAGE%, BUILD_ACCOUNTS_WITH_TESTS=%BUILD_ACCOUNTS_WITH_TESTS%, BUILD_ACCOUNTS_OFFLINE=%BUILD_ACCOUNTS_OFFLINE%" ]
-SET ACCOUNT_CMD=clean install
+CALL :switchDirectory %SCRIPT_DIR%
+SET ACCOUNTS_CMD=clean install
 IF "%BUILD_ACCOUNTS_OFFLINE%" == "true" (
     CALL :debug Building Accounts in offline mode...
-    SET ACCOUNT_CMD=-o %ACCOUNT_CMD%
-    CALL :debug Current command "%ACCOUNT_CMD%"
+    SET ACCOUNTS_CMD=-o %ACCOUNTS_CMD%
+    CALL :debug Current command "%ACCOUNTS_CMD%"
 )
 IF "%BUILD_ACCOUNTS_WITH_TESTS%" == "false" (
     CALL :debug Skipping tests for Accounts...
-    SET ACCOUNT_CMD=%ACCOUNT_CMD% -DskipTests
-    CALL :debug Current command "%ACCOUNT_CMD%"
+    SET ACCOUNTS_CMD=%ACCOUNTS_CMD% -DskipTests
+    CALL :debug Current command "%ACCOUNTS_CMD%"
 )
 CALL :debug Setting the OS to %OS%...
-SET ACCOUNT_CMD=%ACCOUNT_CMD% -P %OS%
-CALL :debug Current command "%ACCOUNT_CMD%"
+SET ACCOUNTS_CMD=%ACCOUNTS_CMD% -P %OS%
+CALL :debug Current command "%ACCOUNTS_CMD%"
 IF "%BUILD_ACCOUNTS_DOCKER_IMAGE%" == "true" (
     CALL :debug Building Accounts with Docker image...
-    SET ACCOUNT_CMD=%ACCOUNT_CMD%,withDockerImage
-    CALL :debug Current command "%ACCOUNT_CMD%"
+    SET ACCOUNTS_CMD=%ACCOUNTS_CMD%,withDockerImage
+    CALL :debug Current command "%ACCOUNTS_CMD%"
 )
 IF NOT "%LOCAL_MAVEN_REPOSITORY%" == "" (
     CALL :debug Using local Maven repository...
-    SET ACCOUNT_CMD=%ACCOUNT_CMD% -Dmaven.repo.local=%cd%\%LOCAL_MAVEN_REPOSITORY%
-    CALL :debug Current command "%ACCOUNT_CMD%"
+    SET ACCOUNTS_CMD=%ACCOUNTS_CMD% -Dmaven.repo.local=%cd%\%LOCAL_MAVEN_REPOSITORY%
+    CALL :debug Current command "%ACCOUNTS_CMD%"
 )
-CALL :debug Final command "[ %ACCOUNT_CMD% ]"
+CALL :debug Final command "[ %ACCOUNTS_CMD% ]"
 CALL :switchDirectory %ACCOUNTS_DIR%
-CALL :log Running maven command for Accounts "%ACCOUNT_CMD%"
-%MVN% %ACCOUNT_CMD% || goto :error
+CALL :log Running maven command for Accounts "%ACCOUNTS_CMD%"
+%MVN% %ACCOUNTS_CMD% || goto :error
 CALL :log Accounts has been built successfully.
 CALL :debug Function buildAccounts ended...
+goto :eof
+
+REM This function will build the Communities project.
+:buildCommunities
+CALL :debug Function buildCommunities started...
+CALL :debug Setting the project name to Communities...
+SET PROJECT_NAME=Communities
+CALL :log Building Communities...
+CALL :debug [ "BUILD_COMMUNITIES=%BUILD_COMMUNITIES%, BUILD_COMMUNITIES_DOCKER_IMAGE=%BUILD_COMMUNITIES_DOCKER_IMAGE%, BUILD_COMMUNITIES_WITH_TESTS=%BUILD_COMMUNITIES_WITH_TESTS%, BUILD_COMMUNITIES_OFFLINE=%BUILD_COMMUNITIES_OFFLINE%" ]
+CALL :switchDirectory %SCRIPT_DIR%
+SET COMMUNITIES_CMD=clean install
+IF "%BUILD_COMMUNITIES_OFFLINE%" == "true" (
+    CALL :debug Building Communities in offline mode...
+    SET COMMUNITIES_CMD=-o %COMMUNITIES_CMD%
+    CALL :debug Current command "%COMMUNITIES_CMD%"
+)
+IF "%BUILD_COMMUNITIES_WITH_TESTS%" == "false" (
+    CALL :debug Skipping tests for Communities...
+    SET COMMUNITIES_CMD=%COMMUNITIES_CMD% -DskipTests
+    CALL :debug Current command "%COMMUNITIES_CMD%"
+)
+CALL :debug Setting the OS to %OS%...
+SET COMMUNITIES_CMD=%COMMUNITIES_CMD% -P %OS%
+CALL :debug Current command "%COMMUNITIES_CMD%"
+IF "%BUILD_COMMUNITIES_DOCKER_IMAGE%" == "true" (
+    CALL :debug Building Communities with Docker image...
+    SET COMMUNITIES_CMD=%COMMUNITIES_CMD%,withDockerImage
+    CALL :debug Current command "%COMMUNITIES_CMD%"
+)
+IF NOT "%LOCAL_MAVEN_REPOSITORY%" == "" (
+    CALL :debug Using local Maven repository...
+    SET COMMUNITIES_CMD=%COMMUNITIES_CMD% -Dmaven.repo.local=%cd%\%LOCAL_MAVEN_REPOSITORY%
+    CALL :debug Current command "%COMMUNITIES_CMD%"
+)
+CALL :debug Final command "[ %COMMUNITIES_CMD% ]"
+CALL :switchDirectory %COMMUNITIES_DIR%
+CALL :log Running maven command for Communities "%COMMUNITIES_CMD%"
+%MVN% %COMMUNITIES_CMD% || goto :error
+CALL :log Communities has been built successfully.
+CALL :debug Function buildCommunities ended...
+goto :eof
+
+REM This function will build the ConfigServer project.
+:buildConfigServer
+CALL :debug Function buildConfigServer started...
+CALL :debug Setting the project name to ConfigServer...
+SET PROJECT_NAME=ConfigServer
+CALL :log Building ConfigServer...
+CALL :debug [ "BUILD_CONFIGSERVER=%BUILD_CONFIGSERVER%, BUILD_CONFIGSERVER_DOCKER_IMAGE=%BUILD_CONFIGSERVER_DOCKER_IMAGE%, BUILD_CONFIGSERVER_WITH_TESTS=%BUILD_CONFIGSERVER_WITH_TESTS%, BUILD_CONFIGSERVER_OFFLINE=%BUILD_CONFIGSERVER_OFFLINE%" ]
+CALL :switchDirectory %SCRIPT_DIR%
+SET CONFIGSERVER_CMD=clean install
+IF "%BUILD_CONFIGSERVER_OFFLINE%" == "true" (
+    CALL :debug Building ConfigServer in offline mode...
+    SET CONFIGSERVER_CMD=-o %CONFIGSERVER_CMD%
+    CALL :debug Current command "%CONFIGSERVER_CMD%"
+)
+IF "%BUILD_CONFIGSERVER_WITH_TESTS%" == "false" (
+    CALL :debug Skipping tests for ConfigServer...
+    SET CONFIGSERVER_CMD=%CONFIGSERVER_CMD% -DskipTests
+    CALL :debug Current command "%CONFIGSERVER_CMD%"
+)
+CALL :debug Setting the OS to %OS%...
+SET CONFIGSERVER_CMD=%CONFIGSERVER_CMD% -P %OS%
+CALL :debug Current command "%CONFIGSERVER_CMD%"
+IF "%BUILD_CONFIGSERVER_DOCKER_IMAGE%" == "true" (
+    CALL :debug Building ConfigServer with Docker image...
+    SET CONFIGSERVER_CMD=%CONFIGSERVER_CMD%,withDockerImage
+    CALL :debug Current command "%CONFIGSERVER_CMD%"
+)
+IF NOT "%LOCAL_MAVEN_REPOSITORY%" == "" (
+    CALL :debug Using local Maven repository...
+    SET CONFIGSERVER_CMD=%CONFIGSERVER_CMD% -Dmaven.repo.local=%cd%\%LOCAL_MAVEN_REPOSITORY%
+    CALL :debug Current command "%CONFIGSERVER_CMD%"
+)
+CALL :debug Final command "[ %CONFIGSERVER_CMD% ]"
+CALL :switchDirectory %CONFIG_SERVER_DIR%
+CALL :log Running maven command for ConfigServer "%CONFIGSERVER_CMD%"
+%MVN% %CONFIGSERVER_CMD% || goto :error
+CALL :log ConfigServer has been built successfully.
+CALL :debug Function buildConfigServer ended...
+goto :eof
+
+REM This function will build the ServiceDiscovery project.
+:buildServiceDiscovery
+CALL :debug Function buildServiceDiscovery started...
+CALL :debug Setting the project name to ServiceDiscovery...
+SET PROJECT_NAME=ServiceDiscovery
+CALL :log Building ServiceDiscovery...
+CALL :debug [ "BUILD_SERVICEDISCOVERY=%BUILD_SERVICEDISCOVERY%, BUILD_SERVICEDISCOVERY_DOCKER_IMAGE=%BUILD_SERVICEDISCOVERY_DOCKER_IMAGE%, BUILD_SERVICEDISCOVERY_WITH_TESTS=%BUILD_SERVICEDISCOVERY_WITH_TESTS%, BUILD_SERVICEDISCOVERY_OFFLINE=%BUILD_SERVICEDISCOVERY_OFFLINE%" ]
+CALL :switchDirectory %SCRIPT_DIR%
+SET SERVICEDISCOVERY_CMD=clean install
+IF "%BUILD_SERVICEDISCOVERY_OFFLINE%" == "true" (
+    CALL :debug Building ServiceDiscovery in offline mode...
+    SET SERVICEDISCOVERY_CMD=-o %SERVICEDISCOVERY_CMD%
+    CALL :debug Current command "%SERVICEDISCOVERY_CMD%"
+)
+IF "%BUILD_SERVICEDISCOVERY_WITH_TESTS%" == "false" (
+    CALL :debug Skipping tests for ServiceDiscovery...
+    SET SERVICEDISCOVERY_CMD=%SERVICEDISCOVERY_CMD% -DskipTests
+    CALL :debug Current command "%SERVICEDISCOVERY_CMD%"
+)
+CALL :debug Setting the OS to %OS%...
+SET SERVICEDISCOVERY_CMD=%SERVICEDISCOVERY_CMD% -P %OS%
+CALL :debug Current command "%SERVICEDISCOVERY_CMD%"
+IF "%BUILD_SERVICEDISCOVERY_DOCKER_IMAGE%" == "true" (
+    CALL :debug Building ServiceDiscovery with Docker image...
+    SET SERVICEDISCOVERY_CMD=%SERVICEDISCOVERY_CMD%,withDockerImage
+    CALL :debug Current command "%SERVICEDISCOVERY_CMD%"
+)
+IF NOT "%LOCAL_MAVEN_REPOSITORY%" == "" (
+    CALL :debug Using local Maven repository...
+    SET SERVICEDISCOVERY_CMD=%SERVICEDISCOVERY_CMD% -Dmaven.repo.local=%cd%\%LOCAL_MAVEN_REPOSITORY%
+    CALL :debug Current command "%SERVICEDISCOVERY_CMD%"
+)
+CALL :debug Final command "[ %SERVICEDISCOVERY_CMD% ]"
+CALL :switchDirectory %SERVICE_DISCOVERY_DIR%
+CALL :log Running maven command for ServiceDiscovery "%SERVICEDISCOVERY_CMD%"
+%MVN% %SERVICEDISCOVERY_CMD% || goto :error
+CALL :log ServiceDiscovery has been built successfully.
+CALL :debug Function buildServiceDiscovery ended...
+goto :eof
+
+REM This function will build the ApiGateway project.
+:buildApiGateway
+CALL :debug Function buildApiGateway started...
+CALL :debug Setting the project name to ApiGateway...
+SET PROJECT_NAME=ApiGateway
+CALL :log Building ApiGateway...
+CALL :debug [ "BUILD_APIGATEWAY=%BUILD_APIGATEWAY%, BUILD_APIGATEWAY_DOCKER_IMAGE=%BUILD_APIGATEWAY_DOCKER_IMAGE%, BUILD_APIGATEWAY_WITH_TESTS=%BUILD_APIGATEWAY_WITH_TESTS%, BUILD_APIGATEWAY_OFFLINE=%BUILD_APIGATEWAY_OFFLINE%" ]
+CALL :switchDirectory %SCRIPT_DIR%
+SET APIGATEWAY_CMD=clean install
+IF "%BUILD_APIGATEWAY_OFFLINE%" == "true" (
+    CALL :debug Building ApiGateway in offline mode...
+    SET APIGATEWAY_CMD=-o %APIGATEWAY_CMD%
+    CALL :debug Current command "%APIGATEWAY_CMD%"
+)
+IF "%BUILD_APIGATEWAY_WITH_TESTS%" == "false" (
+    CALL :debug Skipping tests for ApiGateway...
+    SET APIGATEWAY_CMD=%APIGATEWAY_CMD% -DskipTests
+    CALL :debug Current command "%APIGATEWAY_CMD%"
+)
+CALL :debug Setting the OS to %OS%...
+SET APIGATEWAY_CMD=%APIGATEWAY_CMD% -P %OS%
+CALL :debug Current command "%APIGATEWAY_CMD%"
+IF "%BUILD_APIGATEWAY_DOCKER_IMAGE%" == "true" (
+    CALL :debug Building ApiGateway with Docker image...
+    SET APIGATEWAY_CMD=%APIGATEWAY_CMD%,withDockerImage
+    CALL :debug Current command "%APIGATEWAY_CMD%"
+)
+IF NOT "%LOCAL_MAVEN_REPOSITORY%" == "" (
+    CALL :debug Using local Maven repository...
+    SET APIGATEWAY_CMD=%APIGATEWAY_CMD% -Dmaven.repo.local=%cd%\%LOCAL_MAVEN_REPOSITORY%
+    CALL :debug Current command "%APIGATEWAY_CMD%"
+)
+CALL :debug Final command "[ %APIGATEWAY_CMD% ]"
+CALL :switchDirectory %API_GATEWAY_DIR%
+CALL :log Running maven command for ApiGateway "%APIGATEWAY_CMD%"
+%MVN% %APIGATEWAY_CMD% || goto :error
+CALL :log ApiGateway has been built successfully.
+CALL :debug Function buildApiGateway ended...
 goto :eof
 
 REM Environment
@@ -84,15 +289,24 @@ CD %1 || goto :error
 CALL :debug Switched to %cd%
 goto :eof
 
+:logDelimiter
+SET PROJECT_NAME=%DEFAULT_PROJECT_NAME%
+ECHO.
+CALL :log =================================================================================================
+CALL :log =================================================================================================
+CALL :log =================================================================================================
+ECHO.
+goto :eof
+
 :log
 ECHO %PROJECT_NAME% --- [INFO] %*
 goto :eof
 
 :debug
 IF "%DEBUG%" == "true" (
-ECHO.
 ECHO %DATE% %TIME% %USERNAME% %COMPUTERNAME% --- %PROJECT_NAME% --- [DEBUG] %*
 )
+goto :eof
 
 :error
 ECHO %DATE% %TIME% %USERNAME% %COMPUTERNAME% %CD% --- %PROJECT_NAME% --- [ERROR] %*
