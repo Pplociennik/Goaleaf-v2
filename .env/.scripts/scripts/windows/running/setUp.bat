@@ -12,7 +12,7 @@ SET SCRIPT_DIR=%CD%
 SET HOME_DIR="%SCRIPT_DIR%\..\..\..\..\.."
 
 REM List of variables that can have different values
-SET EXCEPTIONS_LIST="ACTIVE_PROFILE OS LOCAL_MAVEN_REPOSITORY DOCKER_COMPOSE_SINGLE_DB DOCKER_COMPOSE_MULTI_DB EXCLUDE_OBSERVABILITY"
+SET EXCEPTIONS_LIST="ACTIVE_PROFILE OS LOCAL_MAVEN_REPOSITORY DOCKER_COMPOSE_SINGLE_DB DOCKER_COMPOSE_MULTI_DB WITHOUT_OBSERVABILITY ONLY_SINGLE_DATABASE, ONLY_MULTI_DATABASE"
 
 REM Read the .env file and set the variables
 FOR /F "tokens=1,2 delims==" %%A IN ('TYPE %ENV_FILE% ^| FINDSTR /R "^[a-zA-Z]"') DO (
@@ -39,34 +39,37 @@ SET API_GATEWAY_DIR="%HOME_DIR%\glf-api-gateway"
 
 SET MVN=mvn
 
-CALL :logDelimiter
-
 IF "%BUILD_ACCOUNTS%" == "true" (
+    CALL :logDelimiter
     CALL :buildAccounts
 )
 
-CALL :logDelimiter
-
 IF "%BUILD_COMMUNITIES%" == "true" (
+    CALL :logDelimiter
     CALL :buildCommunities
 )
 
-CALL :logDelimiter
-
 IF "%BUILD_CONFIGSERVER%" == "true" (
+    CALL :logDelimiter
     CALL :buildConfigServer
 )
 
-CALL :logDelimiter
-
 IF "%BUILD_SERVICEDISCOVERY%" == "true" (
+    CALL :logDelimiter
     CALL :buildServiceDiscovery
 )
 
-CALL :logDelimiter
-
 IF "%BUILD_APIGATEWAY%" == "true" (
+    CALL :logDelimiter
     CALL :buildApiGateway
+)
+
+IF "%RUN_ON_DOCKER%" == "true" (
+    CALL :logDelimiter
+    CALL :runOnDocker
+) ELSE (
+    CALL :logDelimiter
+    CALL :runLocally
 )
 
 ECHO.
@@ -276,6 +279,39 @@ CALL :log Running maven command for ApiGateway "%APIGATEWAY_CMD%"
 %MVN% %APIGATEWAY_CMD% || goto :error
 CALL :log ApiGateway has been built successfully.
 CALL :debug Function buildApiGateway ended...
+goto :eof
+
+REM Running on docker
+:runOnDocker
+CALL :log Running the development environment on Docker...
+CALL :debug Running the development environment on Docker...
+CALL :debug [ "RUN_ON_DOCKER=%RUN_ON_DOCKER%, RUN_IN_DETACHED_MODE=%RUN_IN_DETACHED_MODE%, SINGLE_DB=%SINGLE_DB%, OBSERVABILITY=%OBSERVABILITY%" ]
+CALL :switchDirectory %SCRIPT_DIR%
+SET DOCKER_COMPOSE_CMD=up
+IF "%SINGLE_DB%" == "true" (
+    CALL :debug Running the development environment with a single database...
+    SET DOCKER_COMPOSE_CMD=-f "%DOCKER_COMPOSE_SINGLE_DB%" %DOCKER_COMPOSE_CMD%
+    CALL :debug Current command "%DOCKER_COMPOSE_CMD%"
+) ELSE (
+    CALL :debug Running the development environment with multiple databases...
+    SET DOCKER_COMPOSE_CMD=-f "%DOCKER_COMPOSE_MULTI_DB%" %DOCKER_COMPOSE_CMD%
+    CALL :debug Current command "%DOCKER_COMPOSE_CMD%"
+)
+IF "%OBSERVABILITY%" == "false" (
+    CALL :debug Running the development environment without observability...
+    SET DOCKER_COMPOSE_CMD=%DOCKER_COMPOSE_CMD% %WITHOUT_OBSERVABILITY%
+    CALL :debug Current command "%DOCKER_COMPOSE_CMD%"
+)
+IF "%RUN_IN_DETACHED_MODE%" == "true" (
+    CALL :debug Running the development environment in detached mode...
+    SET DOCKER_COMPOSE_CMD=%DOCKER_COMPOSE_CMD% -d
+    CALL :debug Current command "%DOCKER_COMPOSE_CMD%"
+)
+CALL :debug Final command "[ docker compose %DOCKER_COMPOSE_CMD% ]"
+CALL :log Running Docker Compose command "docker compose %DOCKER_COMPOSE_CMD%"
+docker compose %DOCKER_COMPOSE_CMD% || goto :error
+CALL :log The development environment has been started successfully.
+CALL :debug Function runOnDocker ended...
 goto :eof
 
 REM Environment
