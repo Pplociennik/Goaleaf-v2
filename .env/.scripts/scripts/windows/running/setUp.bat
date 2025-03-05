@@ -4,17 +4,29 @@ SETLOCAL ENABLEDELAYEDEXPANSION
 REM Path to the .env file
 SET ENV_FILE="%cd%\.env"
 SET DEFAULT_PROJECT_NAME=Goaleaf
-SET PROJECT_NAME=%DEFAULT_PROJECT_NAME%
 
+REM Settings
+REM Debug mode. Prints additional information.
 SET DEBUG=true
-
+REM Maven executable. Just use 'mvn' if it is in the PATH.
+SET MVN=mvn
+REM List of variables that can have values different than 'true' or 'false'.
+SET EXCEPTIONS_LIST="ACTIVE_PROFILE OS LOCAL_MAVEN_REPOSITORY DOCKER_COMPOSE_SINGLE_DB DOCKER_COMPOSE_MULTI_DB WITHOUT_OBSERVABILITY ONLY_SINGLE_DATABASE, ONLY_MULTI_DATABASE"
+REM ATTENTION: These variables should not be changed.
 SET SCRIPT_DIR=%CD%
 SET HOME_DIR="%SCRIPT_DIR%\..\..\..\..\.."
+SET ACCOUNTS_DIR="%HOME_DIR%\glf-accounts"
+SET COMMUNITIES_DIR="%HOME_DIR%\glf-communities"
+SET CONFIG_SERVER_DIR="%HOME_DIR%\glf-configServer"
+SET SERVICE_DISCOVERY_DIR="%HOME_DIR%\glf-servicediscovery"
+SET API_GATEWAY_DIR="%HOME_DIR%\glf-api-gateway"
 
-REM List of variables that can have different values
-SET EXCEPTIONS_LIST="ACTIVE_PROFILE OS LOCAL_MAVEN_REPOSITORY DOCKER_COMPOSE_SINGLE_DB DOCKER_COMPOSE_MULTI_DB WITHOUT_OBSERVABILITY ONLY_SINGLE_DATABASE, ONLY_MULTI_DATABASE"
+REM =======================================================================================================
 
-REM Read the .env file and set the variables
+REM Set the default project name.
+SET PROJECT_NAME=%DEFAULT_PROJECT_NAME%
+
+REM Read the .env file and set the variables. Prints an error if the value is not 'true' or 'false' (excluding variables from the exceptions list).
 FOR /F "tokens=1,2 delims==" %%A IN ('TYPE %ENV_FILE% ^| FINDSTR /R "^[a-zA-Z]"') DO (
     SET %%A=%%B
     SET "IS_EXCEPTION=false"
@@ -26,18 +38,11 @@ FOR /F "tokens=1,2 delims==" %%A IN ('TYPE %ENV_FILE% ^| FINDSTR /R "^[a-zA-Z]"'
         EXIT /B 1
     )
 )
-
-REM Now you can use the variables from the .env file
 CALL :log Loaded environment variables from .env file
+
+REM =======================================================================================================
+
 CALL :log Starting the setup...
-
-SET ACCOUNTS_DIR="%HOME_DIR%\glf-accounts"
-SET COMMUNITIES_DIR="%HOME_DIR%\glf-communities"
-SET CONFIG_SERVER_DIR="%HOME_DIR%\glf-configServer"
-SET SERVICE_DISCOVERY_DIR="%HOME_DIR%\glf-servicediscovery"
-SET API_GATEWAY_DIR="%HOME_DIR%\glf-api-gateway"
-
-SET MVN=mvn
 
 IF "%BUILD_ACCOUNTS%" == "true" (
     CALL :logDelimiter
@@ -67,9 +72,6 @@ IF "%BUILD_APIGATEWAY%" == "true" (
 IF "%RUN_ON_DOCKER%" == "true" (
     CALL :logDelimiter
     CALL :runOnDocker
-) ELSE (
-    CALL :logDelimiter
-    CALL :runLocally
 )
 
 ECHO.
@@ -78,8 +80,6 @@ CALL :log Setup completed successfully.
 exit /b 0
 
 REM =================================================================================================
-
-REM Maven
 
 REM This function will build the Accounts project.
 :buildAccounts
@@ -331,7 +331,7 @@ goto :eof
 REM Environment
 
 :switchDirectory
-REM This function will switch to the specified directory.
+REM Switches to the specified directory.
 REM Parameters:
 REM    1. The directory to switch to.
 CALL :debug Switching to %1
@@ -339,6 +339,7 @@ CD %1 || goto :error
 CALL :debug Switched to %cd%
 goto :eof
 
+REM Prints a delimiter in the log.
 :logDelimiter
 SET PROJECT_NAME=%DEFAULT_PROJECT_NAME%
 ECHO.
@@ -348,16 +349,23 @@ CALL :log ======================================================================
 ECHO.
 goto :eof
 
+REM Prints a message in the log.
+REM Parameters:
+REM    1. The message to be printed.
 :log
 ECHO %PROJECT_NAME% --- [INFO] %*
 goto :eof
 
+REM Prints a message in the log when the debug mode is on.
+REM Parameters:
+REM    1. The message to be printed.
 :debug
 IF "%DEBUG%" == "true" (
 ECHO %DATE% %TIME% %USERNAME% %COMPUTERNAME% --- %PROJECT_NAME% --- [DEBUG] %*
 )
 goto :eof
 
+REM Prints an error message in the log.
 :error
 ECHO %DATE% %TIME% %USERNAME% %COMPUTERNAME% %CD% --- %PROJECT_NAME% --- [ERROR] %*
 goto :eof
