@@ -298,8 +298,22 @@ IF "%SINGLE_DB%" == "true" (
     CALL :debug Current command "%DOCKER_COMPOSE_CMD%"
 )
 IF "%OBSERVABILITY%" == "false" (
-    CALL :debug Running the development environment without observability...
-    SET DOCKER_COMPOSE_CMD=%DOCKER_COMPOSE_CMD% %WITHOUT_OBSERVABILITY%
+    IF "%RUN_DATABASE_ONLY%" == "false" (
+        CALL :debug Running the development environment without observability...
+        SET DOCKER_COMPOSE_CMD=%DOCKER_COMPOSE_CMD% %WITHOUT_OBSERVABILITY%
+        CALL :debug Current command "%DOCKER_COMPOSE_CMD%"
+    ) ELSE (
+        CALL :debug The RUN_DATABASE_ONLY variable is set to true. The command will not be modified.
+    )
+)
+IF "%RUN_DATABASE_ONLY%" == "true" (
+    CALL :log Running only the database...
+    CALL :debug [ "ONLY_SINGLE_DATABASE=%ONLY_SINGLE_DATABASE%" ]
+    IF "%SINGLE_DB%" == "true" (
+        SET DOCKER_COMPOSE_CMD=%DOCKER_COMPOSE_CMD% %ONLY_SINGLE_DATABASE%
+    ) ELSE (
+        SET DOCKER_COMPOSE_CMD=%DOCKER_COMPOSE_CMD% %ONLY_MULTI_DATABASE%
+    )
     CALL :debug Current command "%DOCKER_COMPOSE_CMD%"
 )
 IF "%RUN_IN_DETACHED_MODE%" == "true" (
