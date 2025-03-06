@@ -39,7 +39,6 @@ SET PP_MODINFO_REPO=https://github.com/Pplociennik/pp-modinfo.git
 CALL :log Building the libraries needed for the PP projects...
 
 REM ---------------- First remove temporary directories, if they exist ----------------
-ECHO TEMP_DIR=%TEMP_DIR%
 IF EXIST %TEMP_DIR% (
     CALL :log Removing the existing temporary directories...
     RD /S /Q %TEMP_DIR% || goto :error
