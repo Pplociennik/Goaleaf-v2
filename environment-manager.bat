@@ -92,14 +92,14 @@ REM ============================================================================
 REM Calling scripts
 :callClone
 CALL :log Executing the CLONE goal.
-pushd %SUBSCRIPTS_DIR%
+pushd "%SUBSCRIPTS_DIR%"
 CALL "prepare_dev_environment.bat" || goto :error
 popd
 goto :eof
 
 :callDeps
 CALL :log Executing the DEPS goal.
-pushd %SUBSCRIPTS_DIR%
+pushd "%SUBSCRIPTS_DIR%"
 CALL "build_pp_libs.bat" || goto :error
 popd
 goto :eof
@@ -121,7 +121,7 @@ goto :eof
 
 :callClean
 CALL :log Executing the CLEAN goal.
-pushd %SUBSCRIPTS_DIR%
+pushd "%SUBSCRIPTS_DIR%"
 CALL "clean_docker_environment.bat" || goto :error
 popd
 goto :eof
