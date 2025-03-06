@@ -3,9 +3,10 @@ SETLOCAL ENABLEDELAYEDEXPANSION
 
 REM Settings
 SET DEFAULT_PROJECT_NAME=EnvManager
+SET DEBUG=true
 
 SET SCRIPT_DIR=%CD%
-SET SUBSCRIPTS_DIR=%SCRIPT_DIR%\.scripts\scripts\windows
+SET SUBSCRIPTS_DIR=%SCRIPT_DIR%\.env\.scripts\scripts\windows
 
 SET PROJECT_NAME=%DEFAULT_PROJECT_NAME%
 SET PERMITTED_GOALS=CLONE DEPS RUN STOP CLEAN
@@ -54,19 +55,18 @@ REM Execution
 :executeChain
     FOR %%A IN (%CHAIN%) DO (
         IF "%%A" == "CLONE" (
-            CALL :callClone
+            CALL :callClone || goto :error
         ) ELSE IF "%%A" == "DEPS" (
-            CALL :callDeps
+            CALL :callDeps || goto :error
         ) ELSE IF "%%A" == "RUN" (
-            CALL :callRun
+            CALL :callRun || goto :error
         ) ELSE IF "%%A" == "STOP" (
-            CALL :callStop
+            CALL :callStop || goto :error
         ) ELSE IF "%%A" == "CLEAN" (
-            CALL :callClean
+            CALL :callClean || goto :error
         )
     )
 goto :eof
-
 
 :validateChain
 SET ALL_GOALS_VALID=true
@@ -92,22 +92,28 @@ REM ============================================================================
 REM Calling scripts
 :callClone
 CALL :log Executing the CLONE goal.
-CALL %SUBSCRIPTS_DIR%\prepare_dev_environment.bat || goto :error
+CALL "%SUBSCRIPTS_DIR%\prepare_dev_environment.bat" || goto :error
 goto :eof
 
 :callDeps
 CALL :log Executing the DEPS goal.
-CALL %SUBSCRIPTS_DIR%\build_pp_libs.bat || goto :error
+CALL "%SUBSCRIPTS_DIR%\build_pp_libs.bat" || goto :error
 goto :eof
 
 :callRun
 CALL :log Executing the RUN goal.
-CALL %SUBSCRIPTS_DIR%\running\setUp.bat || goto :error
+CALL :debug Running [ "%SUBSCRIPTS_DIR%\running\setUp.bat" ]
+CALL "%SUBSCRIPTS_DIR%\running\setUp.bat" || goto :error
 goto :eof
 
 :callStop
 CALL :log Executing the STOP goal.
-CALL %SUBSCRIPTS_DIR%\running\tearDown.bat || goto :error
+CALL "%SUBSCRIPTS_DIR%\running\tearDown.bat" || goto :error
+goto :eof
+
+:callClean
+CALL :log Executing the CLEAN goal.
+CALL "%SUBSCRIPTS_DIR%\clean_docker_environment.bat" || goto :error
 goto :eof
 
 REM Environment
@@ -189,6 +195,15 @@ goto :eof
 ::: /_______  /___|  /\_/ |__||__|   \____/|___|  /__|_|  /\___  >___|  /__|   \____|__  (____  /___|  (____  /\___  / \___  >__|
 :::         \/     \/                           \/      \/     \/     \/               \/     \/     \/     \//_____/      \/
 for /f "delims=: tokens=*" %%A in ('findstr /b ::: "%~f0"') do @echo(%%A
+goto :eof
+
+REM Prints a message in the log when the debug mode is on.
+REM Parameters:
+REM    1. The message to be printed.
+:debug
+IF "%DEBUG%" == "true" (
+ECHO %DATE% %TIME% %USERNAME% %COMPUTERNAME% --- %PROJECT_NAME% --- [DEBUG] %*
+)
 goto :eof
 
 REM Prints an error message in the log.

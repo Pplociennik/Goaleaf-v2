@@ -361,7 +361,7 @@ REM Parameters:
 REM    1. The message to be printed.
 :debug
 IF "%DEBUG%" == "true" (
-ECHO %DATE% | %TIME% | %USERNAME% | %COMPUTERNAME% --- %PROJECT_NAME% --- [DEBUG] %*
+ECHO %DATE% %TIME% %USERNAME% %COMPUTERNAME% --- %PROJECT_NAME% --- [DEBUG] %*
 )
 goto :eof
 
