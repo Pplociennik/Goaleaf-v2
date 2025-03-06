@@ -92,28 +92,38 @@ REM ============================================================================
 REM Calling scripts
 :callClone
 CALL :log Executing the CLONE goal.
-CALL "%SUBSCRIPTS_DIR%\prepare_dev_environment.bat" || goto :error
+pushd %SUBSCRIPTS_DIR%
+CALL "prepare_dev_environment.bat" || goto :error
+popd
 goto :eof
 
 :callDeps
 CALL :log Executing the DEPS goal.
-CALL "%SUBSCRIPTS_DIR%\build_pp_libs.bat" || goto :error
+pushd %SUBSCRIPTS_DIR%
+CALL "build_pp_libs.bat" || goto :error
+popd
 goto :eof
 
 :callRun
 CALL :log Executing the RUN goal.
 CALL :debug Running [ "%SUBSCRIPTS_DIR%\running\setUp.bat" ]
-CALL "%SUBSCRIPTS_DIR%\running\setUp.bat" || goto :error
+pushd "%SUBSCRIPTS_DIR%\running"
+CALL "setUp.bat" || goto :error
+popd
 goto :eof
 
 :callStop
 CALL :log Executing the STOP goal.
-CALL "%SUBSCRIPTS_DIR%\running\tearDown.bat" || goto :error
+pushd "%SUBSCRIPTS_DIR%\running"
+CALL "tearDown.bat" || goto :error
+popd
 goto :eof
 
 :callClean
 CALL :log Executing the CLEAN goal.
-CALL "%SUBSCRIPTS_DIR%\clean_docker_environment.bat" || goto :error
+pushd %SUBSCRIPTS_DIR%
+CALL "clean_docker_environment.bat" || goto :error
+popd
 goto :eof
 
 REM Environment
