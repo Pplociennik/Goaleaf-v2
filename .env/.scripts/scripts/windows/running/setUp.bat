@@ -7,7 +7,7 @@ SET DEFAULT_PROJECT_NAME=Goaleaf
 
 REM Settings
 REM Debug mode. Prints additional information.
-SET DEBUG=true
+SET DEBUG=false
 REM Maven executable. Just use 'mvn' if it is in the PATH.
 SET MVN=mvn
 REM List of variables that can have values different than 'true' or 'false'.
