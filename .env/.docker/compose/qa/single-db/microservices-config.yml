@@ -18,17 +18,13 @@ services:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
       SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO}
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE}
+      COM_GOALEAF_ACCOUNTS_AUTH_SERVICE_URL: ${COM_GOALEAF_ACCOUNTS_AUTH_SERVICE_URL}
     healthcheck:
       test: "curl --fail --silent localhost:8080/actuator/health/readinessState | grep UP || exit 1"
       interval: 20s
       timeout: 5s
       retries: 20
       start_period: 10s
-    depends_on:
-      configserver:
-        condition: service_healthy
-      goaleafdb:
-        condition: service_healthy
     extends:
       file: common-config.yml
       service: microservice-configserver-config
@@ -57,11 +53,6 @@ services:
       timeout: 5s
       retries: 20
       start_period: 10s
-    depends_on:
-      configserver:
-        condition: service_healthy
-      goaleafdb:
-        condition: service_healthy
     extends:
       file: common-config.yml
       service: microservice-configserver-config

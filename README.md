@@ -37,7 +37,7 @@ The project is divided into several modules (separated microservices), each with
 - **glf-configServer**: A service responsible for managing the configuration of the other services,
 - **glf-serviceDiscovery**: A service responsible for managing the service discovery and registration,
 - **glf-gateway**: A service responsible for managing the API gateway,
-- **glf-accounts**: A service responsible for managing user accounts and the data related,
+- **glf-accounts**: A service responsible for managing userDetails accounts and the data related,
 - **glf-communities**: A service responsible for managing communities including members, tasks, posts, boards, points and many, many more.
 
 The project also uses external local services:

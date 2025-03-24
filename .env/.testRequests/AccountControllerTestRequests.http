@@ -1,4 +1,4 @@
-### POST request to create a user
+### POST request to create a userDetails
 POST http://localhost:8072/accounts/api/users/create
 Content-Type: application/json
 
@@ -8,10 +8,10 @@ Content-Type: application/json
   "password": "password123"
 }
 
-### GET request to fetch a user by email address
-GET http://localhost:8072/accounts/api/users/user?aEmailAddress=test@example.com
+### GET request to fetch a userDetails by email address
+GET http://localhost:8072/accounts/api/users/userDetails?aEmailAddress=test@example.com
 
-### PUT request to update a user
+### PUT request to update a userDetails
 PUT http://localhost:8072/accounts/api/users/update
 Content-Type: application/json
 
@@ -21,5 +21,5 @@ Content-Type: application/json
   "password": "newpassword123"
 }
 
-### DELETE request to delete a user by identifier
+### DELETE request to delete a userDetails by identifier
 DELETE http://localhost:8072/accounts/api/users/delete?aIdentifier=test@example.com

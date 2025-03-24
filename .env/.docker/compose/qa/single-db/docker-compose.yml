@@ -6,6 +6,9 @@ services:
     extends:
       file: common-microservices-config.yml
       service: keycloak
+    depends_on:
+      goaleafdb:
+        condition: service_healthy
 
   # Api Gateway
 
@@ -13,6 +16,9 @@ services:
     extends:
       file: common-microservices-config.yml
       service: api-gateway
+    depends_on:
+      servicediscovery:
+        condition: service_healthy
 
   # Service Discovery
 
@@ -20,6 +26,9 @@ services:
     extends:
       file: common-microservices-config.yml
       service: servicediscovery
+    depends_on:
+      configserver:
+        condition: service_healthy
 
   # Config Server
 
@@ -27,6 +36,9 @@ services:
     extends:
       file: common-microservices-config.yml
       service: configserver
+    depends_on:
+      keycloak:
+        condition: service_healthy
 
   # ====================================================================================================================
 
@@ -47,6 +59,11 @@ services:
     extends:
       file: microservices-config.yml
       service: accounts
+    depends_on:
+      configserver:
+        condition: service_healthy
+      goaleafdb:
+        condition: service_healthy
 
     # Communities
 
@@ -54,6 +71,11 @@ services:
     extends:
       file: microservices-config.yml
       service: communities
+    depends_on:
+      configserver:
+        condition: service_healthy
+      goaleafdb:
+        condition: service_healthy
 
   # ====================================================================================================================
 
