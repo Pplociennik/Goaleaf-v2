@@ -7,6 +7,8 @@ services:
     container_name: "glf-accounts"
     #    ports:
     #      - "8080:8080"
+    ports:
+      - "5005:5005"
     environment:
       SPRING_APPLICATION_NAME: "accounts"
       OTP_SERVICE_NAME: "accounts"

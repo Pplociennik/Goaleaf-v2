@@ -3,7 +3,7 @@ SETLOCAL ENABLEDELAYEDEXPANSION
 
 REM Path to the .env file
 SET ENV_FILE="%cd%\.env"
-SET DEFAULT_PROJECT_NAME=Goaleaf
+SET DEFAULT_PROJECT_NAME=Setup script
 
 REM Settings
 REM Debug mode. Prints additional information.
