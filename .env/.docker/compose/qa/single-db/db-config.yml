@@ -18,3 +18,22 @@ services:
     extends:
       file: common-config.yml
       service: microservice-db-config
+
+  keycloakdb:
+    container_name: keycloakdb
+    hostname: keycloakdb
+    ports:
+      - "3308:3306"
+    environment:
+      MYSQL_DATABASE: keycloakdb
+    volumes:
+      - ./volumes/keycloak-mysql:/var/lib/mysql
+    healthcheck:
+      test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
+      interval: 10s
+      timeout: 10s
+      retries: 999999
+      start_period: 30s
+    extends:
+      file: common-config.yml
+      service: microservice-db-config

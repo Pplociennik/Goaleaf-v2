@@ -18,9 +18,8 @@ services:
       KC_DB_USERNAME: ${KC_DB_USERNAME}
       KC_DB_PASSWORD: ${KC_DB_PASSWORD}
       KC_HOSTNAME: ${KC_HOSTNAME}
-    command:
-      - start-dev
-      - --import-realm
+      KC_FEATURES: "scripts"
+    command: start-dev --import-realm
     volumes:
       - ./volumes/keycloak:/opt/keycloak/data/import
     healthcheck:
@@ -43,12 +42,13 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8072:8072"
+      - "5006:5006"
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
       SPRING_APPLICATION_NAME: "api-gateway"
       OTEL_SERVICE_NAME: "api-gateway"
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE}
-      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK-SET-URI: ${SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK-SET-URI}
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: ${SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI}
     extends:
       file: common-config.yml
       service: microservice-configserver-config

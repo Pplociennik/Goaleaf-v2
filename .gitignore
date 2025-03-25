@@ -15,3 +15,5 @@
 /.env/.secrets/
 /.env/.tools/
 /.env/.scripts/scripts/linux/.temp/
+/.env/._postman/
+/.env/.postman/

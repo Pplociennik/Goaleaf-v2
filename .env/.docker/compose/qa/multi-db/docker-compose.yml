@@ -18,6 +18,10 @@ services:
     depends_on:
       servicediscovery:
         condition: service_healthy
+      accounts:
+        condition: service_healthy
+      communities:
+        condition: service_healthy
 
   # Service Discovery
 
@@ -73,6 +77,10 @@ services:
         condition: service_healthy
       accountsdb:
         condition: service_healthy
+      servicediscovery:
+        condition: service_healthy
+      tempo:
+        condition: service_started
 
       # Communities
 
@@ -85,6 +93,10 @@ services:
         condition: service_healthy
       communitiesdb:
         condition: service_healthy
+      servicediscovery:
+        condition: service_healthy
+      tempo:
+        condition: service_started
 
   # ====================================================================================================================
 

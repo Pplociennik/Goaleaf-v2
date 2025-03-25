@@ -3,7 +3,7 @@ SETLOCAL ENABLEDELAYEDEXPANSION
 
 REM Path to the .env file
 SET ENV_FILE="%cd%\.env"
-SET DEFAULT_PROJECT_NAME=Goaleaf
+SET DEFAULT_PROJECT_NAME=Setup script
 
 REM Settings
 REM Debug mode. Prints additional information.
@@ -87,7 +87,7 @@ CALL :debug Function buildAccounts started...
 CALL :debug Setting the project name to Accounts...
 SET PROJECT_NAME=Accounts
 CALL :log Building Accounts...
-CALL :debug [ "BUILD_ACCOUNTS=%BUILD_ACCOUNTS%, BUILD_ACCOUNTS_DOCKER_IMAGE=%BUILD_ACCOUNTS_DOCKER_IMAGE%, BUILD_ACCOUNTS_WITH_TESTS=%BUILD_ACCOUNTS_WITH_TESTS%, BUILD_ACCOUNTS_OFFLINE=%BUILD_ACCOUNTS_OFFLINE%" ]
+CALL :debug [ "BUILD_ACCOUNTS=%BUILD_ACCOUNTS%, BUILD_ACCOUNTS_DOCKER_IMAGE=%BUILD_ACCOUNTS_DOCKER_IMAGE%, BUILD_ACCOUNTS_WITH_TESTS=%BUILD_ACCOUNTS_WITH_TESTS%, RUN_UNIT_TESTS=%RUN_UNIT_TESTS%, BUILD_ACCOUNTS_OFFLINE=%BUILD_ACCOUNTS_OFFLINE%" ]
 CALL :switchDirectory %SCRIPT_DIR%
 SET ACCOUNTS_CMD=clean install
 IF "%BUILD_ACCOUNTS_OFFLINE%" == "true" (
@@ -103,6 +103,11 @@ IF "%BUILD_ACCOUNTS_WITH_TESTS%" == "false" (
 CALL :debug Setting the OS to %OS%...
 SET ACCOUNTS_CMD=%ACCOUNTS_CMD% -P %OS%
 CALL :debug Current command "%ACCOUNTS_CMD%"
+IF "%RUN_INTEGRATION_TESTS%" == "true" (
+    CALL :debug Building Accounts with integration tests...
+    SET ACCOUNTS_CMD=%ACCOUNTS_CMD%,integration
+    CALL :debug Current command "%ACCOUNTS_CMD%"
+)
 IF "%BUILD_ACCOUNTS_DOCKER_IMAGE%" == "true" (
     CALL :debug Building Accounts with Docker image...
     SET ACCOUNTS_CMD=%ACCOUNTS_CMD%,withDockerImage

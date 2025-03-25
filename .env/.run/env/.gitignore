@@ -1,4 +1,3 @@
-/.env_auth_nonGit
 /.env_configServer_nonGit
-/withObservability/.env_auth_nonGit
-/withObservability/.env_configServer_nonGit
+/.env_accounts_nonGit
+
