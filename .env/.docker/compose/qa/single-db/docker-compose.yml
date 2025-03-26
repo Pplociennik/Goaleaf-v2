@@ -19,6 +19,12 @@ services:
     depends_on:
       servicediscovery:
         condition: service_healthy
+      accounts:
+        condition: service_healthy
+      communities:
+        condition: service_healthy
+      tempo:
+        condition: service_started
 
   # Service Discovery
 
@@ -29,6 +35,8 @@ services:
     depends_on:
       configserver:
         condition: service_healthy
+      tempo:
+        condition: service_started
 
   # Config Server
 
@@ -39,6 +47,8 @@ services:
     depends_on:
       keycloak:
         condition: service_healthy
+      tempo:
+        condition: service_started
 
   # ====================================================================================================================
 
@@ -64,6 +74,10 @@ services:
         condition: service_healthy
       goaleafdb:
         condition: service_healthy
+      servicediscovery:
+        condition: service_healthy
+      tempo:
+        condition: service_started
 
     # Communities
 
@@ -76,6 +90,10 @@ services:
         condition: service_healthy
       goaleafdb:
         condition: service_healthy
+      servicediscovery:
+        condition: service_healthy
+      tempo:
+        condition: service_started
 
   # ====================================================================================================================
 
