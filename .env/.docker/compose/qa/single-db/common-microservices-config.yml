@@ -18,6 +18,7 @@ services:
       KC_DB_USERNAME: ${KC_DB_USERNAME}
       KC_DB_PASSWORD: ${KC_DB_PASSWORD}
       KC_HOSTNAME: ${KC_HOSTNAME}
+      KC_FEATURES: "scripts"
     command:
       - start-dev
       - --import-realm
