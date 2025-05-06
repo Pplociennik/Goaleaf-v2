@@ -5,13 +5,12 @@ services:
   accounts:
     image: "com.goaleaf/glf-accounts:${ACCOUNTS_SERVICE_VERSION}"
     container_name: "glf-accounts"
-    #    ports:
-    #      - "8080:8080"
     ports:
       - "5005:5005"
+      - "8080:8080"
     environment:
-      SPRING_APPLICATION_NAME: "accounts"
-      OTP_SERVICE_NAME: "accounts"
+      SPRING_APPLICATION_NAME: "glf-accounts"
+      OTP_SERVICE_NAME: "glf-accounts"
       SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
       SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
       SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
@@ -47,8 +46,8 @@ services:
     #    ports:
     #      - "8090:8090"
     environment:
-      SPRING_APPLICATION_NAME: "communities"
-      OTEL_SERVICE_NAME: "communities"
+      SPRING_APPLICATION_NAME: "glf-communities"
+      OTEL_SERVICE_NAME: "glf-communities"
       SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
       SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
       SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}

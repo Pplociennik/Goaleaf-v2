@@ -59,6 +59,11 @@ services:
       file: db-config.yml
       service: goaleafdb
 
+  keycloakdb:
+    extends:
+      file: db-config.yml
+      service: keycloakdb
+
   # ====================================================================================================================
 
   # Microservices

@@ -44,6 +44,7 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8072:8072"
+      - "5006:5006"
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
       SPRING_APPLICATION_NAME: "api-gateway"
