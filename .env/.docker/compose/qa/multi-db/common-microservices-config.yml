@@ -51,12 +51,6 @@ services:
       OTEL_SERVICE_NAME: "api-gateway"
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE}
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: ${SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI}
-    healthcheck:
-      test: "curl --fail --silent localhost:8080/actuator/health/readinessState | grep UP || exit 1"
-      interval: 20s
-      timeout: 5s
-      retries: 20
-      start_period: 10s
     extends:
       file: common-config.yml
       service: microservice-configserver-config
