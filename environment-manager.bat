@@ -35,6 +35,8 @@ IF "%GOAL%" == "1" (
     SET CHAIN=DEPS CLONE RUN
 ) ELSE IF "%GOAL%" == "7" (
     SET CHAIN=DEPS RUN
+) ELSE IF "%GOAL%" == "8" (
+    SET CHAIN=STOP RUN
 ) ELSE IF "%GOAL%" == "99" (
     SET /P CHAIN=Enter the goal chain you want to execute:
 ) ELSE (
@@ -168,6 +170,7 @@ ECHO    4. DEPS CLONE
 ECHO    5. CLEAN
 ECHO    6. DEPS CLONE RUN ( WARNING! This one will not work properly with the default configuration. The docker containers will not start properly )
 ECHO    7. DEPS RUN ( WARNING! This one will not work properly with the default configuration. The docker containers will not start properly )
+ECHO    8. STOP RUN ( WARNING! This one will not work properly with the default configuration. The docker containers will not start properly )
 ECHO    ...
 ECHO    99. Your custom goal chain
 ECHO.

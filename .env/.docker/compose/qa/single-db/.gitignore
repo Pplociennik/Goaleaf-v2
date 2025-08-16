@@ -1,2 +1,5 @@
 /.env
 /volumes/mysql/
+/volumes/mysql_back/
+/volumes/keycloak/*.json
+/volumes/keycloak-mysql/

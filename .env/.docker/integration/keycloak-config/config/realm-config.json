@@ -1,0 +1,112 @@
+{
+  "realm": "integration",
+  "enabled": true,
+  "displayName": "Integration Tests Realm",
+  "loginTheme": "keycloak",
+  "accessTokenLifespan": 300,
+  "clients": [
+    {
+      "clientId": "integration-client",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "integration-client-secret",
+      "redirectUris": [
+        "http://localhost:8080/*"
+      ],
+      "webOrigins": [
+        "*"
+      ],
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": true,
+      "authorizationServicesEnabled": true,
+      "fullScopeAllowed": true
+    }
+  ],
+  "roles": {
+    "realm": [
+      {
+        "name": "user",
+        "description": "User role"
+      },
+      {
+        "name": "admin",
+        "description": "Administrator role with full access",
+        "composite": true,
+        "composites": {
+          "client": {
+            "realm-management": [
+              "manage-realm",
+              "view-realm",
+              "manage-users",
+              "view-users",
+              "manage-clients",
+              "view-clients",
+              "create-client",
+              "manage-events",
+              "query-clients",
+              "query-groups",
+              "query-users"
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "users": [
+    {
+      "username": "TestUser",
+      "enabled": true,
+      "email": "test@example.com",
+      "firstName": "Test",
+      "lastName": "User",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Test1234!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "admin",
+        "user"
+      ],
+      "clientRoles": {
+        "realm-management": [
+          "manage-realm",
+          "view-realm",
+          "manage-users",
+          "view-users",
+          "manage-clients",
+          "view-clients",
+          "create-client"
+        ]
+      }
+    },
+    {
+      "username": "service-account-integration-client",
+      "enabled": true,
+      "serviceAccountClientId": "integration-client",
+      "realmRoles": [
+        "admin"
+      ],
+      "clientRoles": {
+        "realm-management": [
+          "manage-realm",
+          "view-realm",
+          "manage-users",
+          "view-users",
+          "manage-clients",
+          "view-clients",
+          "create-client",
+          "manage-events",
+          "query-clients",
+          "query-groups",
+          "query-users"
+        ]
+      }
+    }
+  ]
+}
