@@ -8,6 +8,7 @@ REM    2. glf-servicediscovery
 REM    3. glf-api-gateway
 REM    4. glf-accounts
 REM    5. glf-communities
+REM    6. glf-webclient
 
 REM Requirements:
 REM    1. Git should be installed on the system.
@@ -27,6 +28,8 @@ SET API_GATEWAY_REPO=https://github.com/Pplociennik/glf-api-gateway.git
 SET ACCOUNTS_REPO=https://github.com/Pplociennik/glf_accounts.git
 SET COMMUNITIES_REPO=https://github.com/Pplociennik/glf_communities.git
 
+SET WEBCLIENT_REPO=https://github.com/Pplociennik/glf-webclient.git
+
 REM The directories where the repositories will be cloned.
 SET CONFIG_SERVER_DIR=glf-configServer
 SET SERVICE_DISCOVERY_DIR=glf-servicediscovery
@@ -34,12 +37,16 @@ SET API_GATEWAY_DIR=glf-api-gateway
 SET ACCOUNTS_DIR=glf-accounts
 SET COMMUNITIES_DIR=glf-communities
 
+SET WEBCLIENT_DIR=glf-webclient
+
 REM Branches/Tags to checkout.
 SET CONFIG_SERVER_BRANCH=main
 SET SERVICE_DISCOVERY_BRANCH=main
 SET API_GATEWAY_BRANCH=main
 SET ACCOUNTS_BRANCH=main
 SET COMMUNITIES_BRANCH=main
+
+SET WEBCLIENT_BRANCH=main
 
 REM Temporary directory for cloning
 SET TEMP_DIR=%HOME%\.temp
@@ -75,6 +82,9 @@ CALL :checkAndClone %ACCOUNTS_REPO% %ACCOUNTS_DIR% Accounts
 
 REM ---------------- Communities ----------------
 CALL :checkAndClone %COMMUNITIES_REPO% %COMMUNITIES_DIR% Communities
+
+REM ---------------- Webclient ----------------
+CALL :checkAndClone %WEBCLIENT_REPO% %WEBCLIENT_DIR% Webclient
 
 REM ---------------- Clean up temporary directory ----------------
 CALL :switchDirectory %HOME%

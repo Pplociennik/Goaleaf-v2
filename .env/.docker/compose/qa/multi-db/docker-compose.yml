@@ -139,6 +139,18 @@ services:
 
   # ====================================================================================================================
 
+    # Webclient
+  webclient:
+    image: "glf-webclient"
+    container_name: "glf-webclient"
+    ports:
+      - "4200:4200"
+    depends_on:
+      api-gateway:
+        condition: service_healthy
+
+  # ====================================================================================================================
+
 # Networks
 
 networks:
