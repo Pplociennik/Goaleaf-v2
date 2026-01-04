@@ -43,6 +43,12 @@ services:
     ports:
       - "8072:8072"
       - "5006:5006"
+    healthcheck:
+      test: "curl --fail --silent localhost:8072/actuator/health/readinessState | grep UP || exit 1"
+      interval: 20s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
       SPRING_APPLICATION_NAME: "api-gateway"

@@ -21,6 +21,8 @@ SET CONFIG_SERVER_DIR="%HOME_DIR%\glf-configServer"
 SET SERVICE_DISCOVERY_DIR="%HOME_DIR%\glf-servicediscovery"
 SET API_GATEWAY_DIR="%HOME_DIR%\glf-api-gateway"
 
+SET WEBCLIENT_DIR="%HOME_DIR%\glf-webclient"
+
 REM =======================================================================================================
 
 REM Set the default project name.
@@ -67,6 +69,11 @@ IF "%BUILD_SERVICEDISCOVERY%" == "true" (
 IF "%BUILD_APIGATEWAY%" == "true" (
     CALL :logDelimiter
     CALL :buildApiGateway
+)
+
+IF "%WEBCLIENT_BUILD_DOCKER_IMAGE%" == "true" (
+    CALL :logDelimiter
+    CALL :buildWebclient
 )
 
 IF "%RUN_ON_DOCKER%" == "true" (
@@ -284,6 +291,23 @@ CALL :log Running maven command for ApiGateway "%APIGATEWAY_CMD%"
 %MVN% %APIGATEWAY_CMD% || goto :error
 CALL :log ApiGateway has been built successfully.
 CALL :debug Function buildApiGateway ended...
+goto :eof
+
+REM This function will build the Webclient docker image.
+:buildWebclient
+CALL :debug Function buildWebclient started...
+CALL :debug Setting the project name to Webclient...
+SET PROJECT_NAME=Webclient
+CALL :log Building Webclient docker image...
+CALL :debug [ "WEBCLIENT_BUILD_DOCKER_IMAGE=%WEBCLIENT_BUILD_DOCKER_IMAGE%" ]
+CALL :switchDirectory %SCRIPT_DIR%
+IF "%WEBCLIENT_BUILD_DOCKER_IMAGE%" == "true" (
+    CALL :debug Building Webclient docker image...
+    CALL :switchDirectory %WEBCLIENT_DIR%
+    docker build -t glf-webclient --no-cache . || goto :error
+    CALL :log Webclient docker image has been built successfully.
+)
+CALL :debug Function buildWebClient ended...
 goto :eof
 
 REM Running on docker
