@@ -11,7 +11,7 @@ SET DEBUG=false
 REM Maven executable. Just use 'mvn' if it is in the PATH.
 SET MVN=mvn
 REM List of variables that can have values different than 'true' or 'false'.
-SET EXCEPTIONS_LIST="ACTIVE_PROFILE OS LOCAL_MAVEN_REPOSITORY DOCKER_COMPOSE_SINGLE_DB DOCKER_COMPOSE_MULTI_DB WITHOUT_OBSERVABILITY ONLY_SINGLE_DATABASE ONLY_MULTI_DATABASE"
+SET EXCEPTIONS_LIST="ACTIVE_PROFILE OS LOCAL_MAVEN_REPOSITORY DOCKER_COMPOSE_SINGLE_DB DOCKER_COMPOSE_MULTI_DB ALL_MICROSERVICES OBSERVABILITY_SERVICES WEBCLIENT_SERVICE ONLY_SINGLE_DATABASE ONLY_MULTI_DATABASE"
 REM ATTENTION: These variables should not be changed.
 SET SCRIPT_DIR="%CD%"
 SET HOME_DIR="%SCRIPT_DIR%\..\..\..\..\.."
@@ -314,7 +314,7 @@ REM Running on docker
 :runOnDocker
 CALL :log Running the development environment on Docker...
 CALL :debug Running the development environment on Docker...
-CALL :debug [ "RUN_ON_DOCKER=%RUN_ON_DOCKER%, RUN_IN_DETACHED_MODE=%RUN_IN_DETACHED_MODE%, SINGLE_DB=%SINGLE_DB%, OBSERVABILITY=%OBSERVABILITY%" ]
+CALL :debug [ "RUN_DATABASE_ON_DOCKER=%RUN_DATABASE_ON_DOCKER%, RUN_SERVICES_ON_DOCKER=%RUN_SERVICES_ON_DOCKER%, RUN_OBSERVABILITY_ON_DOCKER=%RUN_OBSERVABILITY_ON_DOCKER%, SINGLE_DB=%SINGLE_DB%" ]
 CALL :switchDirectory %SCRIPT_DIR%
 SET DOCKER_COMPOSE_CMD=up
 IF "%SINGLE_DB%" == "true" (
@@ -326,23 +326,30 @@ IF "%SINGLE_DB%" == "true" (
     SET DOCKER_COMPOSE_CMD=-f "%DOCKER_COMPOSE_MULTI_DB%" %DOCKER_COMPOSE_CMD%
     CALL :debug Current command "%DOCKER_COMPOSE_CMD%"
 )
-IF "%OBSERVABILITY%" == "false" (
-    IF "%RUN_DATABASE_ONLY%" == "false" (
-        CALL :debug Running the development environment without observability...
-        SET DOCKER_COMPOSE_CMD=%DOCKER_COMPOSE_CMD% %WITHOUT_OBSERVABILITY%
+IF "%RUN_DATABASE_ON_DOCKER%" == "true" (
+    IF "%SINGLE_DB%" == "true" (
+        CALL :debug A single database will be run on docker. Modifying command...
+        SET DOCKER_COMPOSE_CMD=%DOCKER_COMPOSE_CMD% %ONLY_SINGLE_DATABASE%
         CALL :debug Current command "%DOCKER_COMPOSE_CMD%"
     ) ELSE (
-        CALL :debug The RUN_DATABASE_ONLY variable is set to true. The command will not be modified.
+        CALL :debug A single database will be run on docker. Modifying command...
+        SET DOCKER_COMPOSE_CMD=%DOCKER_COMPOSE_CMD% %ONLY_MULTI_DATABASE%
+        CALL :debug Current command "%DOCKER_COMPOSE_CMD%"
     )
 )
-IF "%RUN_DATABASE_ONLY%" == "true" (
-    CALL :log Running only the database...
-    CALL :debug [ "ONLY_SINGLE_DATABASE=%ONLY_SINGLE_DATABASE%" ]
-    IF "%SINGLE_DB%" == "true" (
-        SET DOCKER_COMPOSE_CMD=%DOCKER_COMPOSE_CMD% %ONLY_SINGLE_DATABASE%
-    ) ELSE (
-        SET DOCKER_COMPOSE_CMD=%DOCKER_COMPOSE_CMD% %ONLY_MULTI_DATABASE%
-    )
+IF "%RUN_SERVICES_ON_DOCKER%" == "true" (
+    CALL :debug Services will be run on docker. Modifying command...
+    SET DOCKER_COMPOSE_CMD=%DOCKER_COMPOSE_CMD% %ALL_MICROSERVICES%
+    CALL :debug Current command "%DOCKER_COMPOSE_CMD%"
+)
+IF "%RUN_OBSERVABILITY_ON_DOCKER%" == "true" (
+    CALL :debug Observability services will be run on docker. Modifying command...
+    SET DOCKER_COMPOSE_CMD=%DOCKER_COMPOSE_CMD% %OBSERVABILITY_SERVICES%
+    CALL :debug Current command "%DOCKER_COMPOSE_CMD%"
+)
+IF "%RUN_WEBCLIENT_ON_DOCKER%" == "true" (
+    CALL :debug Webclient will be run on docker. Modifying command...
+    SET DOCKER_COMPOSE_CMD=%DOCKER_COMPOSE_CMD% %WEBCLIENT_SERVICE%
     CALL :debug Current command "%DOCKER_COMPOSE_CMD%"
 )
 IF "%RUN_IN_DETACHED_MODE%" == "true" (
