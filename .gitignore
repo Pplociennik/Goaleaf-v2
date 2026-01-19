@@ -17,3 +17,5 @@
 /.env/.scripts/scripts/linux/.temp/
 /.env/._postman/
 /.env/.postman/
+/CLAUDE.md
+/.claude/
