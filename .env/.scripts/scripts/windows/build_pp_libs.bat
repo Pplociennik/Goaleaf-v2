@@ -20,9 +20,9 @@ REM A path to the local Git installation (if not available in the PATH). Use 'gi
 SET GIT=git
 
 REM The branches/tags to be built.
-SET PP_BASE_BRANCH_OR_TAG=master
-SET PP_COMMONS_BRANCH_OR_TAG=master
-SET PP_MODINFO_BRANCH_OR_TAG=master
+SET PP_BASE_BRANCH_OR_TAG=release/2.0-java25
+SET PP_COMMONS_BRANCH_OR_TAG=release/2.0-java25
+SET PP_MODINFO_BRANCH_OR_TAG=release/2.0-java25
 
 REM These are constants used in the script:
 SET HOME=%CD%
