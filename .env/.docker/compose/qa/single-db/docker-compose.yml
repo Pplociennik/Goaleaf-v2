@@ -7,7 +7,16 @@ services:
       file: common-microservices-config.yml
       service: keycloak
     depends_on:
-      goaleafdb:
+      keycloakdb:
+        condition: service_healthy
+
+  # keycloak-configurer (runtime)
+  keycloak-configurer:
+    extends:
+      file: common-microservices-config.yml
+      service: keycloak-configurer
+    depends_on:
+      keycloak:
         condition: service_healthy
 
   # Api Gateway
@@ -147,6 +156,8 @@ services:
     container_name: "glf-webclient"
     ports:
       - "4200:4200"
+    networks:
+      - goaleaf_net
     depends_on:
       api-gateway:
         condition: service_healthy

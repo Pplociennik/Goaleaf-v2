@@ -6,8 +6,6 @@ SET ENV_FILE="%cd%\.env"
 SET DEFAULT_PROJECT_NAME=Setup script
 
 REM Settings
-REM Debug mode. Prints additional information.
-SET DEBUG=false
 REM Maven executable. Just use 'mvn' if it is in the PATH.
 SET MVN=mvn
 REM List of variables that can have values different than 'true' or 'false'.
@@ -22,6 +20,7 @@ SET SERVICE_DISCOVERY_DIR="%HOME_DIR%\glf-servicediscovery"
 SET API_GATEWAY_DIR="%HOME_DIR%\glf-api-gateway"
 
 SET WEBCLIENT_DIR="%HOME_DIR%\glf-webclient"
+SET KEYCLOAK_CONFIGURER_DIR="%HOME_DIR%\.env\.docker\keycloak\config-image"
 
 REM =======================================================================================================
 
@@ -74,6 +73,11 @@ IF "%BUILD_APIGATEWAY%" == "true" (
 IF "%WEBCLIENT_BUILD_DOCKER_IMAGE%" == "true" (
     CALL :logDelimiter
     CALL :buildWebclient
+)
+
+IF "%KEYCLOAK_CONFIGURER_BUILD%" == "true" (
+    CALL :logDelimiter
+    CALL :buildKeycloakConfigurer
 )
 
 IF "%RUN_ON_DOCKER%" == "true" (
@@ -310,6 +314,20 @@ IF "%WEBCLIENT_BUILD_DOCKER_IMAGE%" == "true" (
 CALL :debug Function buildWebClient ended...
 goto :eof
 
+REM This function will build the keycloak-configurer:runtime image.
+:buildKeycloakConfigurer
+CALL :debug Function buildKeycloakConfigurer started...
+CALL :debug Setting the project name to KeycloakConfigurer...
+SET PROJECT_NAME=KeycloakConfigurer
+CALL :log Building keycloak-configurer (runtime) docker image...
+CALL :debug [ "KEYCLOAK_CONFIGURER_BUILD=%KEYCLOAK_CONFIGURER_BUILD%" ]
+CALL :switchDirectory %SCRIPT_DIR%
+CALL :switchDirectory %KEYCLOAK_CONFIGURER_DIR%
+docker build -t keycloak-configurer:runtime --no-cache . || goto :error
+CALL :log Keycloak-configurer image (runtime) has been built successfully.
+CALL :debug Function buildKeycloakConfigurer ended...
+goto :eof
+
 REM Running on docker
 :runOnDocker
 CALL :log Running the development environment on Docker...
@@ -340,6 +358,11 @@ IF "%RUN_DATABASE_ON_DOCKER%" == "true" (
 IF "%RUN_SERVICES_ON_DOCKER%" == "true" (
     CALL :debug Services will be run on docker. Modifying command...
     SET DOCKER_COMPOSE_CMD=%DOCKER_COMPOSE_CMD% %ALL_MICROSERVICES%
+    CALL :debug Current command "%DOCKER_COMPOSE_CMD%"
+)
+IF "%KEYCLOAK_CONFIGURER_RUN%" == "true" (
+    CALL :debug "Keycloak-configurer (runtime) will be run on docker. Modifying command..."
+    SET DOCKER_COMPOSE_CMD=%DOCKER_COMPOSE_CMD% keycloak-configurer
     CALL :debug Current command "%DOCKER_COMPOSE_CMD%"
 )
 IF "%RUN_OBSERVABILITY_ON_DOCKER%" == "true" (

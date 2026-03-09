@@ -21,3 +21,6 @@
 /.claude/
 */nul
 /nul
+/.env/.docker/keycloak/config-image/config/
+/docs/
+/.idea/

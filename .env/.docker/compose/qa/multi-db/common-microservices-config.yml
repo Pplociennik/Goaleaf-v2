@@ -32,6 +32,15 @@ services:
       file: common-config.yml
       service: network-deploy-service
 
+  # keycloak-configurer
+
+  keycloak-configurer:
+    image: "keycloak-configurer:runtime"
+    container_name: runtime-keycloak-configurer
+    extends:
+      file: common-config.yml
+      service: network-deploy-service
+
   # Api Gateway
 
   api-gateway:
