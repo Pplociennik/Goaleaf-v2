@@ -21,3 +21,12 @@
 /.claude/
 */nul
 /nul
+/.env/.run/.env/.env_configServer_nonGit
+/.idea/.gitignore
+/.idea/compiler.xml
+/.idea/encodings.xml
+/.idea/Goaleaf-v2.iml
+/.idea/jarRepositories.xml
+/.idea/misc.xml
+/.idea/modules.xml
+/.idea/vcs.xml
