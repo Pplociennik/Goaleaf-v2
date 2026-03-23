@@ -1,0 +1,299 @@
+services:
+
+  # ====================================================================================================================
+  # Databases
+  # ====================================================================================================================
+
+  goaleafdb:
+    image: mysql
+    container_name: goaleafdb
+    hostname: goaleafdb
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: goaleafdb
+    volumes:
+      - goaleafdb-data:/var/lib/mysql
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 10s
+      timeout: 10s
+      retries: 999999
+      start_period: 30s
+    networks:
+      - goaleaf_net
+
+  keycloakdb:
+    image: mysql
+    container_name: keycloakdb
+    hostname: keycloakdb
+    ports:
+      - "3308:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: keycloakdb
+    volumes:
+      - keycloakdb-data:/var/lib/mysql
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 10s
+      timeout: 10s
+      retries: 999999
+      start_period: 30s
+    networks:
+      - goaleaf_net
+
+  # ====================================================================================================================
+  # Keycloak
+  # ====================================================================================================================
+
+  keycloak:
+    image: "quay.io/keycloak/keycloak:latest"
+    container_name: glf-keycloak
+    ports:
+      - "7080:8080"
+      - "9000:9000"
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KC_BOOTSTRAP_ADMIN_USERNAME}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KC_BOOTSTRAP_ADMIN_PASSWORD}
+      KC_METRICS_ENABLED: ${KC_METRICS_ENABLED}
+      KC_HEALTH_ENABLED: ${KC_HEALTH_ENABLED}
+      KC_DB: ${KC_DB}
+      KC_DB_URL: ${KC_DB_URL}
+      KC_DB_USERNAME: ${KC_DB_USERNAME}
+      KC_DB_PASSWORD: ${KC_DB_PASSWORD}
+      KC_HOSTNAME: ${KC_HOSTNAME}
+      KC_FEATURES: "scripts"
+    command: start-dev
+    healthcheck:
+      test: [ "CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000; echo -e 'GET /health/ready HTTP/1.1\r\nHost: localhost:9000\r\nConnection: close\r\n\r\n' >&3;cat <&3 | grep -q '\"status\": \"UP\"' && exit 0 || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 100
+      start_period: 30s
+    depends_on:
+      keycloakdb:
+        condition: service_healthy
+    networks:
+      - goaleaf_net
+
+  keycloak-configurer:
+    image: "keycloak-configurer:runtime"
+    container_name: runtime-keycloak-configurer
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    networks:
+      - goaleaf_net
+
+  # ====================================================================================================================
+  # Config Server
+  # ====================================================================================================================
+
+  configserver:
+    image: "com.goaleaf/glf-configserver:${CONFIG_SERVER_VERSION}"
+    container_name: glf-configserver
+    hostname: glf-configserver
+    ports:
+      - "8071:8071"
+    deploy:
+      resources:
+        limits:
+          memory: 1024M
+    environment:
+      SPRING_PROFILES_ACTIVE: "qa"
+      SPRING_APPLICATION_NAME: "configserver"
+      SPRING_CLOUD_CONFIG_SERVER_GIT_URI: ${GIT_URI}
+      SPRING_CLOUD_CONFIG_SERVER_GIT_USERNAME: ${GIT_USERNAME}
+      SPRING_CLOUD_CONFIG_SERVER_GIT_PASSWORD: ${GIT_PASSWORD}
+    healthcheck:
+      test: "curl --fail --silent localhost:8071/actuator/health/readinessState | grep UP || exit 1"
+      interval: 20s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    networks:
+      - goaleaf_net
+
+  # ====================================================================================================================
+  # Service Discovery
+  # ====================================================================================================================
+
+  servicediscovery:
+    image: "com.goaleaf/glf-servicediscovery:${SERVICE_DISCOVERY_VERSION}"
+    container_name: glf-servicediscovery
+    ports:
+      - "8070:8070"
+    deploy:
+      resources:
+        limits:
+          memory: 1024M
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+      SPRING_APPLICATION_NAME: "servicediscovery"
+      SPRING_CONFIG_IMPORT: configserver:http://configserver:8071/
+    healthcheck:
+      test: "curl --fail --silent localhost:8070/actuator/health/readinessState | grep UP || exit 1"
+      interval: 20s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    depends_on:
+      configserver:
+        condition: service_healthy
+    networks:
+      - goaleaf_net
+
+  # ====================================================================================================================
+  # Microservices
+  # ====================================================================================================================
+
+  accounts:
+    image: "com.goaleaf/glf-accounts:${ACCOUNTS_SERVICE_VERSION}"
+    container_name: "glf-accounts"
+    ports:
+      - "8080:8080"
+    deploy:
+      resources:
+        limits:
+          memory: 1024M
+    environment:
+      SPRING_APPLICATION_NAME: "glf-accounts"
+      SPRING_CONFIG_IMPORT: configserver:http://configserver:8071/
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      SPRING_JPA_DATABASE_PLATFORM: ${SPRING_JPA_DATABASE_PLATFORM}
+      SPRING_DATASOURCE_DRIVERCLASSNAME: ${SPRING_JPA_DATASOURCE_DRIVERCLASSNAME}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO}
+      SPRING_JPA_PROPERTIES_HIBERNATE_JDBC_TIME_ZONE: ${SPRING_JPA_PROPERTIES_HIBERNATE_JDBC_TIME_ZONE}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE}
+      COM_GOALEAF_ACCOUNTS_AUTH_SERVICE_URL: ${COM_GOALEAF_ACCOUNTS_AUTH_SERVICE_URL}
+      COM_GOALEAF_ACCOUNTS_KEYCLOAK_REALM_NAME: ${COM_GOALEAF_ACCOUNTS_KEYCLOAK_REALM_NAME}
+      COM_GOALEAF_ACCOUNTS_KEYCLOAK_CLIENTID: ${COM_GOALEAF_ACCOUNTS_KEYCLOAK_CLIENTID}
+      COM_GOALEAF_ACCOUNTS_KEYCLOAK_CLIENTSECRET: ${COM_GOALEAF_ACCOUNTS_KEYCLOAK_CLIENTSECRET}
+      COM_GOALEAF_ACCOUNTS_KEYCLOAK_GRANTTYPE: ${COM_GOALEAF_ACCOUNTS_KEYCLOAK_GRANTTYPE}
+      COM_GOALEAF_ACCOUNTS_KEYCLOAK_SCOPE: ${COM_GOALEAF_ACCOUNTS_KEYCLOAK_SCOPE}
+      COM_GOALEAF_ACCOUNTS_AUTH_ACCESS_TOKEN_VALIDATIONSTRATEGY: ${COM_GOALEAF_ACCOUNTS_AUTH_ACCESS_TOKEN_VALIDATIONSTRATEGY}
+      COM_GOALEAF_ACCOUNTS_CLIENT_URI: ${COM_GOALEAF_ACCOUNTS_CLIENT_URI}
+    healthcheck:
+      test: "curl --fail --silent localhost:8080/actuator/health/readinessState | grep UP || exit 1"
+      interval: 20s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    depends_on:
+      configserver:
+        condition: service_healthy
+      goaleafdb:
+        condition: service_healthy
+      servicediscovery:
+        condition: service_healthy
+    networks:
+      - goaleaf_net
+
+  communities:
+    image: "com.goaleaf/glf-communities:${COMMUNITIES_SERVICE_VERSION}"
+    container_name: "glf-communities"
+    deploy:
+      resources:
+        limits:
+          memory: 1024M
+    environment:
+      SPRING_APPLICATION_NAME: "glf-communities"
+      SPRING_CONFIG_IMPORT: configserver:http://configserver:8071/
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      SPRING_JPA_DATABASE_PLATFORM: ${SPRING_JPA_DATABASE_PLATFORM}
+      SPRING_DATASOURCE_DRIVERCLASSNAME: ${SPRING_JPA_DATASOURCE_DRIVERCLASSNAME}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE}
+    healthcheck:
+      test: "curl --fail --silent localhost:8090/actuator/health/readinessState | grep UP || exit 1"
+      interval: 20s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    depends_on:
+      configserver:
+        condition: service_healthy
+      goaleafdb:
+        condition: service_healthy
+      servicediscovery:
+        condition: service_healthy
+    networks:
+      - goaleaf_net
+
+  # ====================================================================================================================
+  # API Gateway
+  # ====================================================================================================================
+
+  api-gateway:
+    image: "com.goaleaf/glf-api-gateway:${API_GATEWAY_VERSION}"
+    container_name: glf-api-gateway
+    ports:
+      - "8072:8072"
+    deploy:
+      resources:
+        limits:
+          memory: 1024M
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+      SPRING_APPLICATION_NAME: "api-gateway"
+      SPRING_CONFIG_IMPORT: configserver:http://configserver:8071/
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE}
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: ${SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI}
+      COM_GOALEAF_ACCOUNTS_CLIENT_URI: ${COM_GOALEAF_ACCOUNTS_CLIENT_URI}
+    healthcheck:
+      test: "curl --fail --silent localhost:8072/actuator/health/readinessState | grep UP || exit 1"
+      interval: 20s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    depends_on:
+      servicediscovery:
+        condition: service_healthy
+      accounts:
+        condition: service_healthy
+      communities:
+        condition: service_healthy
+    networks:
+      - goaleaf_net
+
+  # ====================================================================================================================
+  # Webclient
+  # ====================================================================================================================
+
+  webclient:
+    image: "glf-webclient"
+    container_name: "glf-webclient"
+    ports:
+      - "4200:4200"
+    depends_on:
+      api-gateway:
+        condition: service_healthy
+    networks:
+      - goaleaf_net
+
+# ====================================================================================================================
+# Volumes
+# ====================================================================================================================
+
+volumes:
+  goaleafdb-data:
+  keycloakdb-data:
+
+# ====================================================================================================================
+# Networks
+# ====================================================================================================================
+
+networks:
+  goaleaf_net:
+    driver: "bridge"

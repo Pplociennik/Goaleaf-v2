@@ -21,6 +21,9 @@
 /.claude/
 */nul
 /nul
+/.env/.docker/keycloak/config-image/config/
+/docs/
+/.idea/
 /.env/.run/.env/.env_configServer_nonGit
 /.idea/.gitignore
 /.idea/compiler.xml

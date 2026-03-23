@@ -21,14 +21,17 @@ IF "%GITHUB_USER%" == NULL (
 
 SET HOME=%CD%
 SET PROJECT_HOME=%HOME%\..\..\..
+SET REPO_ROOT=%PROJECT_HOME%\..
 SET SECRETS_DIR=%PROJECT_HOME%\.secrets
 
 REM ####################################################################################################################
 
 SET MULTI_DB_ENV_PATH=".docker\compose\qa\multi-db\.env"
-SET MULTI_DB_KEYCLOAK_VOLUME_PATH=".docker\compose\qa\multi-db\volumes\keycloak\goaleaf-realm.json"
 SET SINGLE_DB_ENV_PATH=".docker\compose\qa\single-db\.env"
-SET SINGLE_DB_KEYCLOAK_VOLUME_PATH=".docker\compose\qa\single-db\volumes\keycloak\goaleaf-realm.json"
+SET KEYCLOAK_CONFIGURER_REALM_CONFIG_PATH=".docker\keycloak\config-image\config\goaleaf-realm.json"
+SET KEYCLOAK_CONFIGURER_SCRIPT_PATH=".docker\keycloak\config-image\config\configure-keycloak.sh"
+SET WEBCLIENT_ENV_DOCKER_PATH="glf-webclient\src\environments\environment.docker.ts"
+SET WEBCLIENT_ENV_PATH="glf-webclient\src\environments\environment.ts"
 
 REM ####################################################################################################################
 
@@ -41,8 +44,10 @@ IF "%COPY_FILES%" == "true" (
     call :log Copying files...
     call :copy %SECRETS_DIR%\%MULTI_DB_ENV_PATH% %PROJECT_HOME%\%MULTI_DB_ENV_PATH%
     call :copy %SECRETS_DIR%\%SINGLE_DB_ENV_PATH% %PROJECT_HOME%\%SINGLE_DB_ENV_PATH%
-    call :copy %SECRETS_DIR%\%MULTI_DB_KEYCLOAK_VOLUME_PATH% %PROJECT_HOME%\%MULTI_DB_KEYCLOAK_VOLUME_PATH%
-    call :copy %SECRETS_DIR%\%SINGLE_DB_KEYCLOAK_VOLUME_PATH% %PROJECT_HOME%\%SINGLE_DB_KEYCLOAK_VOLUME_PATH%
+    call :copy %SECRETS_DIR%\%KEYCLOAK_CONFIGURER_REALM_CONFIG_PATH% %PROJECT_HOME%\%KEYCLOAK_CONFIGURER_REALM_CONFIG_PATH%
+    call :copy %SECRETS_DIR%\%KEYCLOAK_CONFIGURER_SCRIPT_PATH% %PROJECT_HOME%\%KEYCLOAK_CONFIGURER_SCRIPT_PATH%
+    call :copy %SECRETS_DIR%\%WEBCLIENT_ENV_DOCKER_PATH% %REPO_ROOT%\%WEBCLIENT_ENV_DOCKER_PATH%
+    call :copy %SECRETS_DIR%\%WEBCLIENT_ENV_PATH% %REPO_ROOT%\%WEBCLIENT_ENV_PATH%
 )
 
 call :log Config prepared successfully.

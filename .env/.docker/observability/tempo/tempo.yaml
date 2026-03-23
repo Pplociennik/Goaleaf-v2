@@ -4,14 +4,6 @@ server:
   log_level: info
 
 
-cache:
-  background:
-    writeback_goroutines: 5
-  caches:
-    - roles:
-        - frontend-search
-      memcached:
-        host: memcached:11211
 
 query_frontend:
   search:
@@ -47,12 +39,6 @@ metrics_generator:
     remote_write:
       - url: http://prometheus:9090/api/v1/write
         send_exemplars: true
-  traces_storage:
-    path: /var/tempo/generator/traces
-  processor:
-    local_blocks:
-      filter_server_spans: false
-      flush_to_storage: true
 
 storage:
   trace:

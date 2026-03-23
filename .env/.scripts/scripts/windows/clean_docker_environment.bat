@@ -1,42 +1,20 @@
-@echo off
-SETLOCAL ENABLEDELAYEDEXPANSION
+@ECHO OFF
+SETLOCAL
 
-REM List of container names to exclude from removal
-SET EXCEPTIONS_LIST="portainer"
+SET SINGLE_DB_COMPOSE=..\..\..\.docker\compose\qa\single-db\docker-compose.yml
+SET MULTI_DB_COMPOSE=..\..\..\.docker\compose\qa\multi-db\docker-compose.yml
 
-REM Remove all containers except those in the exceptions list
-FOR /F "tokens=1" %%A IN ('docker ps -a --format "{{.Names}}"') DO (
-    CALL :checkException %%A
-    IF "!IS_EXCEPTION!"=="false" (
-        ECHO Removing container %%A
-        docker rm -f %%A
-    ) ELSE (
-        ECHO Skipping container %%A
-    )
-)
+ECHO.
+ECHO Cleaning Goaleaf Docker environment...
+ECHO.
 
-REM Remove all images
-ECHO Removing all images
-for /F %%i in ('docker images -a -q') do docker rmi -f %%i
+ECHO Removing Goaleaf containers, images, networks and volumes...
+ECHO.
 
-REM Remove all networks
-ECHO Removing all networks
-for /F %%i in ('docker network ls -q') do docker rm -f %%i
+docker compose -f "%SINGLE_DB_COMPOSE%" down -v --rmi all 2>nul
+docker compose -f "%MULTI_DB_COMPOSE%" down -v --rmi all 2>nul
 
-REM Prune the Docker system
-ECHO Pruning the Docker system
-docker system prune -f --volumes=false
-
-ECHO Docker environment cleaned successfully.
-
-REM ==============================
-
-REM Function to check if a container is in the exceptions list
-:checkException
-SET "IS_EXCEPTION=false"
-FOR %%E IN (%EXCEPTIONS_LIST%) DO (
-    IF /I "%%~1"=="%%~E" SET "IS_EXCEPTION=true"
-)
-goto :eof
+ECHO.
+ECHO Goaleaf Docker environment has been cleaned successfully.
 
 ENDLOCAL
